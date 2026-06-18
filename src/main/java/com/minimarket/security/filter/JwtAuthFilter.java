@@ -41,14 +41,17 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
             username = jwtUtil.extractUsername(token);
+            System.out.println(">>> USERNAME EXTRAIDO: " + username); //! Debug: Imprime el username extraído del token
         }
 
         // 3. Si se extrajo un username y no hay autenticación activa en el contexto
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            System.out.println(">>> AUTHORITIES: " + userDetails.getAuthorities()); //! Debug: Imprime las autoridades del usuario cargado
 
             // 4. Validar el token
             if (jwtUtil.validateToken(token, userDetails)) {
+                System.out.println(">>> TOKEN VALIDO"); //! Debug: Indica que el token es válido
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(
                                 userDetails, null, userDetails.getAuthorities());
@@ -58,6 +61,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
                 // 5. Registrar la autenticación en el contexto de seguridad
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+            } else {
+                System.out.println(">>> TOKEN INVALIDO"); //! Debug: Indica que el token no es válido
             }
         }
 

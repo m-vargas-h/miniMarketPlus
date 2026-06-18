@@ -12,8 +12,11 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -48,6 +51,18 @@ public class AuthController {
     // POST /auth/login — valida credenciales y devuelve el JWT
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+        System.out.println(">>> INTENTO LOGIN: " + loginRequest.getUsername());
+        try {
+            authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                    loginRequest.getUsername(),
+                    loginRequest.getPassword()
+                )
+            );
+        } catch (Exception e) {
+            System.out.println(">>> ERROR AUTH: " + e.getMessage());
+            throw e;
+        } // Si llegamos aquí, la autenticación fue exitosa
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginRequest.getUsername(),
@@ -86,4 +101,17 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body("Usuario registrado exitosamente.");
     }
+
+    //! nota para mi: el endpoint de registro no es parte de la API real, es solo para facilitar pruebas. 
+    //! En producción, el registro se haría desde una interfaz de administración o similar, no estaría abierto al público.
+    // endpoint de prueba para generar hashes de contraseñas (no es parte de la API real)
+    //@GetMapping("/test-hash")
+    //public ResponseEntity<?> testHash() {
+    //    BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+    //    Map<String, String> hashes = new HashMap<>();
+    //    hashes.put("admin", encoder.encode("admin123"));
+    //    hashes.put("empleado", encoder.encode("empleado123"));
+    //    hashes.put("cliente", encoder.encode("cliente123"));
+    //    return ResponseEntity.ok(hashes);
+    //}
 }

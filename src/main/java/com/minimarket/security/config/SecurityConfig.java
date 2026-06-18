@@ -13,6 +13,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
 @Configuration
 @EnableMethodSecurity
@@ -30,43 +32,45 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+        
+            // Deshabilita CSRF para APIs REST (si usas JWT, no necesitas CSRF)
             .csrf(csrf -> csrf.disable())
 
+            // Sesión stateless — el JWT reemplaza la sesión
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
 
-            .authorizeHttpRequests(auth -> auth
+            // Headers de seguridad HTTP
+            .headers(headers -> headers
+                // Evita que el navegador infiera el tipo de contenido (protección XSS)
+                .contentTypeOptions(contentType -> {})
+                // Permite frames solo desde el mismo origen (necesario para H2 console)
+                .frameOptions(frame -> frame.sameOrigin())
+                // HTTP Strict Transport Security — fuerza HTTPS
+                .httpStrictTransportSecurity(hsts -> hsts
+                    .includeSubDomains(true)
+                    .maxAgeInSeconds(31536000)
+                )
+                // Content Security Policy — restringe fuentes de contenido
+                .contentSecurityPolicy(csp -> csp
+                    .policyDirectives("default-src 'self'; frame-ancestors 'self'")
+                )
+            )
 
-                // Endpoints públicos: login, registro y ruta pública
+            .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/auth/**", "/public/**").permitAll()
                 .requestMatchers("/api/productos/**").permitAll()
                 .requestMatchers("/api/categorias/**").permitAll()
-
-                // Consola H2 solo para administradores
                 .requestMatchers("/h2-console/**").hasRole("ADMIN")
-
-                // Gestión de usuarios solo para administradores
                 .requestMatchers("/api/usuarios/**").hasRole("ADMIN")
-
-                // Inventario y ventas para admin y empleados
                 .requestMatchers("/api/inventario/**").hasAnyRole("ADMIN", "EMPLEADO")
                 .requestMatchers("/api/ventas/**").hasAnyRole("ADMIN", "EMPLEADO")
                 .requestMatchers("/api/detalle-ventas/**").hasAnyRole("ADMIN", "EMPLEADO")
-
-                // Carrito accesible para admin y clientes
                 .requestMatchers("/api/carrito/**").hasAnyRole("ADMIN", "CLIENTE")
-
-                // Cualquier otra solicitud requiere autenticación
                 .anyRequest().authenticated()
             )
 
-            // Permite que la consola H2 use frames en el navegador
-            .headers(headers -> headers
-                .frameOptions(frame -> frame.disable())
-            )
-
-            // Registrar el filtro JWT antes del filtro estándar de Spring Security
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
