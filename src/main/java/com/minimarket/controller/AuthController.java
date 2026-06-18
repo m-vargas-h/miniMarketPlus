@@ -16,8 +16,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -51,23 +49,11 @@ public class AuthController {
     // POST /auth/login — valida credenciales y devuelve el JWT
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
-        System.out.println(">>> INTENTO LOGIN: " + loginRequest.getUsername());
-        try {
-            authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                    loginRequest.getUsername(),
-                    loginRequest.getPassword()
-                )
-            );
-        } catch (Exception e) {
-            System.out.println(">>> ERROR AUTH: " + e.getMessage());
-            throw e;
-        } // Si llegamos aquí, la autenticación fue exitosa
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginRequest.getUsername(),
-                        loginRequest.getPassword()
-                )
+            new UsernamePasswordAuthenticationToken(
+                loginRequest.getUsername(),
+                loginRequest.getPassword()
+            )
         );
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.getUsername());
