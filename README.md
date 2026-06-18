@@ -21,28 +21,43 @@ Backend API REST para la gestión de un minimarket, desarrollada con Spring Boot
 
 ---
 
+## Novedades respecto a v1.3.0
+
+| Aspecto | v1.3.0 | v1.4.0 |
+|---|---|---|
+| Total de pruebas | 37 | 54 |
+| Cobertura total | 52% | 56% |
+| Cobertura service.impl | 35% | 62% |
+| CarritoServiceImplTest | No | Sí (8 pruebas) |
+| InventarioServiceImplTest | No | Sí (9 pruebas) |
+| Validación de stock en CarritoService | No | Sí (`agregarProducto()`) |
+
+---
+
 ## Estructura del Proyecto
 
 ```
 ├── 📁 .mvn
 │   └── 📁 wrapper
 │       └── 📄 maven-wrapper.properties
+├── 📁 postman
+│   └── ⚙️ MiniMarket_S3.postman_collection.json
 ├── 📁 src
 │   ├── 📁 main
 │   │   ├── 📁 java
 │   │   │   └── 📁 com
 │   │   │       └── 📁 minimarket
-│   │   │           ├── 📁 controller                   # Controladores REST
-│   │   │           ├── 📁 entity                       # Entidades JPA
-│   │   │           ├── 📁 repository                   # Interfaces Spring Data JPA
-│   │   │           ├── 📁 security                     # Capa de seguridad
-│   │   │           │   ├── 📁 config                     # Configuración de seguridad (JWT stateless)
-│   │   │           │   ├── 📁 filter                     # Filtro JWT por request
-│   │   │           │   ├── 📁 model                      # CustomUserDetails, LoginRequest
-│   │   │           │   ├── 📁 service                    # CustomUserDetailsService
-│   │   │           │   └── 📁 util                       # JwtUtil.java
-│   │   │           ├── 📁 service                      # Interfaces de servicios
-│   │   │           │   └── 📁 impl                       # Implementaciones
+│   │   │           ├── 📁 controller       # Controladores REST
+│   │   │           ├── 📁 entity           # Entidades JPA
+│   │   │           ├── 📁 repository       # Interfaces Spring Data JPA
+│   │   │           ├── 📁 security         # Capa de seguridad
+│   │   │           │   ├── 📁 config         # Configuración de seguridad (JWT stateless)
+│   │   │           │   ├── 📁 filter         # Filtro JWT por request
+│   │   │           │   ├── 📁 model          # CustomUserDetails, LoginRequest
+│   │   │           │   ├── 📁 service        # CustomUserDetailsService
+│   │   │           │   └── 📁 util           # JwtUtil.java
+│   │   │           ├── 📁 service          # Interfaces de servicios
+│   │   │           │   └── 📁 impl           # Implementaciones
 │   │   │           └── ☕ MinimarketApplication.java
 │   │   └── 📁 resources
 │   │       ├── 📁 static
@@ -54,13 +69,15 @@ Backend API REST para la gestión de un minimarket, desarrollada con Spring Boot
 │           └── 📁 com
 │               └── 📁 minimarket
 │                   ├── 📁 entity
-│                   │   └── ☕ EntityTest.java              # Pruebas de entidades
+│                   │   └── ☕ EntityTest.java
 │                   ├── 📁 service
 │                   │   └── 📁 impl
+│                   │       ├── ☕ CarritoServiceImplTest.java
+│                   │       ├── ☕ InventarioServiceImplTest.java
 │                   │       ├── ☕ UsuarioServiceImplTest.java
 │                   │       └── ☕ VentaServiceImplTest.java
 │                   ├── ☕ MinimarketApplicationTests.java
-│                   └── ☕ MinimarketIntegrationTest.java   # Pruebas de integración
+│                   └── ☕ MinimarketIntegrationTest.java
 ├── ⚙️ .gitattributes
 ├── ⚙️ .gitignore
 ├── 📝 README.md
@@ -68,6 +85,7 @@ Backend API REST para la gestión de un minimarket, desarrollada con Spring Boot
 ├── 📄 mvnw.cmd
 └── ⚙️ pom.xml
 ```
+
 ---
 
 ## Requisitos Previos
@@ -102,12 +120,14 @@ Backend API REST para la gestión de un minimarket, desarrollada con Spring Boot
 ./mvnw test
 ```
 
-Ejecuta las 37 pruebas distribuidas en 4 clases y genera automáticamente el reporte de cobertura JaCoCo.
+Ejecuta las 54 pruebas distribuidas en 6 clases y genera automáticamente el reporte de cobertura JaCoCo.
 
 ### Ejecutar una clase específica
 
 ```bash
 ./mvnw test -Dtest=EntityTest
+./mvnw test -Dtest=CarritoServiceImplTest
+./mvnw test -Dtest=InventarioServiceImplTest
 ./mvnw test -Dtest=UsuarioServiceImplTest
 ./mvnw test -Dtest=VentaServiceImplTest
 ./mvnw test -Dtest=MinimarketIntegrationTest
@@ -123,19 +143,43 @@ Disponible en `target/site/jacoco/index.html` tras ejecutar `./mvnw test`.
 | `com.minimarket.security.config` | 100% |
 | `com.minimarket.security.model` | 100% |
 | `com.minimarket.security.service` | 73% |
+| `com.minimarket.service.impl` | 62% |
+| `com.minimarket.security.util` | 48% |
 | `com.minimarket.security.filter` | 36% |
-| `com.minimarket.service.impl` | 35% |
-| **Total** | **52%** |
+| `com.minimarket.controller` | 16% |
+| **Total** | **56%** |
 
 ### Resumen de pruebas
 
 | Clase | Tipo | Pruebas | Resultado |
 |---|---|---|---|
+| `CarritoServiceImplTest` | Unitaria (Mockito) | 8 | ✅ Todas pasan |
+| `InventarioServiceImplTest` | Unitaria (Mockito) | 9 | ✅ Todas pasan |
 | `UsuarioServiceImplTest` | Unitaria (Mockito) | 8 | ✅ Todas pasan |
 | `VentaServiceImplTest` | Unitaria (Mockito) | 10 | ✅ Todas pasan |
 | `EntityTest` | Unitaria (dominio) | 8 | ✅ Todas pasan |
 | `MinimarketIntegrationTest` | Integración (SpringBootTest) | 10 | ✅ Todas pasan |
-| **Total** | | **37** | **✅ 0 fallos** |
+| **Total** | | **54** | **✅ 0 fallos** |
+
+---
+
+## Lógica de negocio — agregarProducto()
+
+Esta versión incorpora el método `agregarProducto()` en `CarritoServiceImpl`, que valida el stock disponible antes de persistir el carrito:
+
+- Si `cantidad solicitada > stock disponible` → lanza `IllegalArgumentException`
+- Si hay stock suficiente → descuenta el stock del producto y guarda el carrito
+
+```java
+// Ejemplo de uso
+Carrito carrito = new Carrito();
+carrito.setUsuario(usuario);
+carrito.setProducto(producto); // producto con stock = 10
+carrito.setCantidad(3);
+
+Carrito resultado = carritoService.agregarProducto(carrito);
+// producto.getStock() == 7
+```
 
 ---
 

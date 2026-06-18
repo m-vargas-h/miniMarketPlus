@@ -38,4 +38,20 @@ public class CarritoServiceImpl implements CarritoService {
     public List<Carrito> findByUsuarioId(Long usuarioId) {
         return carritoRepository.findByUsuarioId(usuarioId);
     }
+
+    @Override
+    public Carrito agregarProducto(Carrito carrito) {
+        int stockDisponible = carrito.getProducto().getStock();
+        int cantidadSolicitada = carrito.getCantidad();
+
+        if (cantidadSolicitada > stockDisponible) {
+            throw new IllegalArgumentException(
+                "Stock insuficiente. Disponible: " + stockDisponible +
+                ", solicitado: " + cantidadSolicitada
+            );
+        }
+
+        carrito.getProducto().setStock(stockDisponible - cantidadSolicitada);
+        return carritoRepository.save(carrito);
+    }
 }
