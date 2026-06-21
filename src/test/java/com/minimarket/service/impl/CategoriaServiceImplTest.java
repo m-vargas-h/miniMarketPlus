@@ -33,6 +33,7 @@ class CategoriaServiceImplTest {
         categoria.setNombre("Lácteos");
     }
 
+    // Test para verificar que el método findAll retorna una lista de categorías
     @Test
     void testFindAll_RetornaListaDeCategorias() {
         // Arrange
@@ -47,6 +48,7 @@ class CategoriaServiceImplTest {
         assertEquals("Lácteos", resultado.get(0).getNombre());
     }
 
+    // Test para verificar que el método findById retorna una categoría existente
     @Test
     void testFindById_CategoriaExistente() {
         // Arrange
@@ -61,6 +63,7 @@ class CategoriaServiceImplTest {
         assertEquals("Lácteos", resultado.getNombre());
     }
 
+    // Test para verificar que el método findById retorna null cuando la categoría no existe
     @Test
     void testFindById_CategoriaNoExistente() {
         // Arrange
@@ -73,6 +76,7 @@ class CategoriaServiceImplTest {
         assertNull(resultado);
     }
 
+    // Test para verificar que el método save guarda una categoría correctamente
     @Test
     void testSave_GuardaCategoria() {
         // Arrange
@@ -87,6 +91,7 @@ class CategoriaServiceImplTest {
         verify(categoriaRepository, times(1)).save(categoria);
     }
 
+    // Test para verificar que el método deleteById invoca el repositorio para eliminar una categoría
     @Test
     void testDeleteById_InvocaRepositorioUnaVez() {
         // Arrange
@@ -99,6 +104,7 @@ class CategoriaServiceImplTest {
         verify(categoriaRepository, times(1)).deleteById(1L);
     }
 
+    // Test para verificar que el método findAll retorna una lista de categorías con nombres no nulos ni vacíos
     @Test
     void testCategoria_NombreNoEsNulo() {
         // Arrange

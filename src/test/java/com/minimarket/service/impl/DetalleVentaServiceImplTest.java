@@ -58,6 +58,7 @@ class DetalleVentaServiceImplTest {
         detalle.setPrecio(1500.0);
     }
 
+    // Test para verificar que el método findAll retorna una lista de detalles de venta
     @Test
     void testFindAll_RetornaListaDeDetalles() {
         // Arrange
@@ -71,6 +72,7 @@ class DetalleVentaServiceImplTest {
         assertEquals(1, resultado.size());
     }
 
+    // Test para verificar que el método findById retorna un detalle de venta existente
     @Test
     void testFindById_DetalleExistente() {
         // Arrange
@@ -84,6 +86,7 @@ class DetalleVentaServiceImplTest {
         assertEquals(1L, resultado.getId());
     }
 
+    // Test para verificar que el método findById retorna null cuando el detalle de venta no existe
     @Test
     void testFindById_DetalleNoExistente() {
         // Arrange
@@ -96,6 +99,7 @@ class DetalleVentaServiceImplTest {
         assertNull(resultado);
     }
 
+    // Test para verificar que el método save guarda un detalle de venta correctamente
     @Test
     void testSave_GuardaDetalle() {
         // Arrange
@@ -110,6 +114,7 @@ class DetalleVentaServiceImplTest {
         verify(detalleVentaRepository, times(1)).save(detalle);
     }
 
+    // Test para verificar que el método deleteById invoca el repositorio para eliminar un detalle de venta
     @Test
     void testDeleteById_InvocaRepositorioUnaVez() {
         // Arrange
@@ -122,6 +127,8 @@ class DetalleVentaServiceImplTest {
         verify(detalleVentaRepository, times(1)).deleteById(1L);
     }
 
+    // Test para verificar que el método findByVentaId retorna una lista de detalles de venta asociados 
+    // a una venta específica
     @Test
     void testFindByVentaId_RetornaDetallesDeLaVenta() {
         // Arrange
@@ -136,6 +143,7 @@ class DetalleVentaServiceImplTest {
         assertEquals(1L, resultado.get(0).getVenta().getId());
     }
 
+    // Test para verificar que el producto asociado a un detalle de venta es el correcto
     @Test
     void testDetalle_ProductoAsociadoEsElCorrecto() {
         // Arrange

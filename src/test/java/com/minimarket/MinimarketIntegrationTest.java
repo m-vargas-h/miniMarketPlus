@@ -41,7 +41,7 @@ class MinimarketIntegrationTest {
     @Autowired
     private RolRepository rolRepository;
 
-    // ─── Contexto de Spring ───
+    // Contexto de Spring
 
     @Test
     void testContexto_CargaCorrectamente() {
@@ -50,7 +50,7 @@ class MinimarketIntegrationTest {
         assertNotNull(ventaService);
     }
 
-    // ─── Datos iniciales (data.sql) ───
+    // Datos iniciales (data.sql)
 
     @Test
     void testDataSql_UsuariosSeCarganCorrectamente() {
@@ -81,7 +81,7 @@ class MinimarketIntegrationTest {
         assertTrue(tieneRolAdmin);
     }
 
-    // ─── Endpoint de login ───
+    // Endpoint de login
 
     @Test
     void testLogin_CredencialesValidas_Retorna200() throws Exception {
@@ -99,7 +99,7 @@ class MinimarketIntegrationTest {
                 .andExpect(status().isForbidden());
     }
 
-    // ─── Endpoints protegidos sin token ───
+    // Endpoints protegidos sin token
 
     @Test
     void testEndpointVentas_SinToken_Retorna403() throws Exception {
@@ -113,7 +113,7 @@ class MinimarketIntegrationTest {
                 .andExpect(status().isForbidden());
     }
 
-    // ─── Endpoints públicos ───
+    // Endpoints públicos
 
     @Test
     void testEndpointProductos_SinToken_Retorna200() throws Exception {

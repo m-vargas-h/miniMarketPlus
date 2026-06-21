@@ -45,7 +45,7 @@ class InventarioServiceImplTest {
         inventario.setFechaMovimiento(new Date());
     }
 
-    // ─── Pruebas de información de movimiento ───
+    // Pruebas de información de movimiento
 
     @Test
     void testInventario_TipoMovimientoNoEsNulo() {
@@ -89,7 +89,7 @@ class InventarioServiceImplTest {
         );
     }
 
-    // ─── Pruebas de relación Producto-Inventario ───
+    // Pruebas de relación Producto-Inventario
 
     @Test
     void testInventario_ProductoAsociadoEsElCorrecto() {
@@ -119,7 +119,7 @@ class InventarioServiceImplTest {
         assertEquals("Leche", resultado.get(0).getProducto().getNombre());
     }
 
-    // ─── Pruebas de comportamiento del servicio ───
+    // Pruebas de comportamiento del servicio
 
     @Test
     void testFindById_InventarioExistente() {

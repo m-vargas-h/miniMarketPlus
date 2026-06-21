@@ -50,7 +50,7 @@ class CarritoServiceImplTest {
         carrito.setCantidad(3);
     }
 
-    // ─── Pruebas de disponibilidad de stock ───
+    // Pruebas de disponibilidad de stock
 
     @Test
     void testAgregarProducto_StockSuficiente_GuardaCarrito() {
@@ -81,7 +81,7 @@ class CarritoServiceImplTest {
         verify(carritoRepository, never()).save(any());
     }
 
-    // ─── Prueba de relación Producto-Usuario ───
+    // Prueba de relación Producto-Usuario
 
     @Test
     void testCarrito_UsuarioAsociadoEsElCorrecto() {
@@ -111,7 +111,7 @@ class CarritoServiceImplTest {
         assertEquals("cliente", resultado.get(0).getUsuario().getUsername());
     }
 
-    // ─── Pruebas de comportamiento del servicio ───
+    // Pruebas de comportamiento del servicio
 
     @Test
     void testFindById_CarritoExistente() {

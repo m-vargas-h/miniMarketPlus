@@ -42,6 +42,7 @@ class ProductoServiceImplTest {
         producto.setCategoria(categoria);
     }
 
+    // Test para el método findAll
     @Test
     void testFindAll_RetornaListaDeProductos() {
         // Arrange
@@ -56,6 +57,7 @@ class ProductoServiceImplTest {
         assertEquals("Leche", resultado.get(0).getNombre());
     }
 
+    // Test para el método findById
     @Test
     void testFindById_ProductoExistente() {
         // Arrange
@@ -70,6 +72,7 @@ class ProductoServiceImplTest {
         assertEquals("Leche", resultado.getNombre());
     }
 
+    // Test para el método findById con producto no existente
     @Test
     void testFindById_ProductoNoExistente() {
         // Arrange
@@ -82,6 +85,7 @@ class ProductoServiceImplTest {
         assertNull(resultado);
     }
 
+    // Test para el método save
     @Test
     void testSave_GuardaProducto() {
         // Arrange
@@ -96,6 +100,7 @@ class ProductoServiceImplTest {
         verify(productoRepository, times(1)).save(producto);
     }
 
+    // Test para el método deleteById
     @Test
     void testDeleteById_InvocaRepositorioUnaVez() {
         // Arrange
@@ -108,6 +113,7 @@ class ProductoServiceImplTest {
         verify(productoRepository, times(1)).deleteById(1L);
     }
 
+    // Test para el método findByCategoriaId
     @Test
     void testFindByCategoriaId_RetornaProductosDeLaCategoria() {
         // Arrange
@@ -122,6 +128,7 @@ class ProductoServiceImplTest {
         assertEquals("Lácteos", resultado.get(0).getCategoria().getNombre());
     }
 
+    // Test para verificar que el producto tiene una categoría asociada
     @Test
     void testProducto_CategoriaAsociadaEsLaCorrecta() {
         // Arrange

@@ -32,6 +32,7 @@ class RolServiceImplTest {
         rol.setNombre("ROLE_ADMIN");
     }
 
+    // Test para el método findByNombre
     @Test
     void testFindByNombre_RolExistente() {
         // Arrange
@@ -45,6 +46,7 @@ class RolServiceImplTest {
         assertEquals("ROLE_ADMIN", resultado.get().getNombre());
     }
 
+    // Test para el método findByNombre con rol no existente
     @Test
     void testFindByNombre_RolNoExistente() {
         // Arrange
@@ -57,6 +59,7 @@ class RolServiceImplTest {
         assertFalse(resultado.isPresent());
     }
 
+    // Test para verificar que el nombre del rol no es nulo ni vacío
     @Test
     void testRol_NombreNoEsNulo() {
         // Arrange
