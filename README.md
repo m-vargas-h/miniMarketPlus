@@ -21,20 +21,6 @@ Backend API REST para la gestión de un minimarket, desarrollada con Spring Boot
 
 ---
 
-## Novedades respecto a v1.4.0
-
-| Aspecto | v1.4.0 | v1.4.1 |
-|---|---|---|
-| Total de pruebas | 54 | 77 |
-| Cobertura total | 56% | 62% |
-| Cobertura service.impl | 62% | 93% |
-| CategoriaServiceImplTest | No | Sí (6 pruebas) |
-| ProductoServiceImplTest | No | Sí (7 pruebas) |
-| RolServiceImplTest | No | Sí (3 pruebas) |
-| DetalleVentaServiceImplTest | No | Sí (7 pruebas) |
-
----
-
 ## Estructura del Proyecto
 
 ```
