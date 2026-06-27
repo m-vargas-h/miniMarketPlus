@@ -1,6 +1,6 @@
 # MiniMarket Plus
 
-Backend API REST para la gestión de un minimarket, desarrollada con Spring Boot 3 e integración completa de seguridad mediante Spring Security + JWT. Incluye suite de pruebas unitarias e integración con cobertura medida por JaCoCo.
+Backend API REST para la gestión de un minimarket, desarrollada con Spring Boot 3 e integración completa de seguridad mediante Spring Security + JWT. Incluye suite de pruebas unitarias e integración con cobertura medida por JaCoCo. Documentación navegable de la API disponible mediante Swagger UI (OpenAPI 3.0).
 
 ---
 
@@ -12,6 +12,7 @@ Backend API REST para la gestión de un minimarket, desarrollada con Spring Boot
 | Spring Boot | 3.4.1 | Framework base |
 | Spring Security | 6.x | Autenticación y autorización |
 | jjwt | 0.11.5 | Generación y validación de JWT |
+| springdoc-openapi | 2.3.0 | Documentación Swagger UI / OpenAPI 3.0 |
 | H2 Database | Runtime | Base de datos en memoria |
 | Lombok | Latest | Reducción de boilerplate |
 | JUnit 5 | Incluido en starter-test | Framework de pruebas unitarias |
@@ -36,7 +37,7 @@ Backend API REST para la gestión de un minimarket, desarrollada con Spring Boot
 │   │   │           ├── 📁 entity                       # Entidades JPA
 │   │   │           ├── 📁 repository                   # Interfaces Spring Data JPA
 │   │   │           ├── 📁 security                     # Capa de seguridad
-│   │   │           │   ├── 📁 config                     # Configuración de seguridad (JWT stateless)
+│   │   │           │   ├── 📁 config                     # SecurityConfig + OpenApiConfig
 │   │   │           │   ├── 📁 filter                     # Filtro JWT por request
 │   │   │           │   ├── 📁 model                      # CustomUserDetails, LoginRequest
 │   │   │           │   ├── 📁 service                    # CustomUserDetailsService
@@ -53,8 +54,6 @@ Backend API REST para la gestión de un minimarket, desarrollada con Spring Boot
 │       └── 📁 java
 │           └── 📁 com
 │               └── 📁 minimarket
-│                   ├── 📁 entity
-│                   │   └── ☕ EntityTest.java
 │                   ├── 📁 security
 │                   │   ├── ☕ SecurityControllerTest.java
 │                   │   └── 📁 util
@@ -62,11 +61,9 @@ Backend API REST para la gestión de un minimarket, desarrollada con Spring Boot
 │                   ├── 📁 service
 │                   │   └── 📁 impl
 │                   │       ├── ☕ CarritoServiceImplTest.java
-│                   │       ├── ☕ CategoriaServiceImplTest.java
 │                   │       ├── ☕ DetalleVentaServiceImplTest.java
 │                   │       ├── ☕ InventarioServiceImplTest.java
 │                   │       ├── ☕ ProductoServiceImplTest.java
-│                   │       ├── ☕ RolServiceImplTest.java
 │                   │       ├── ☕ UsuarioServiceImplTest.java
 │                   │       └── ☕ VentaServiceImplTest.java
 │                   ├── ☕ MinimarketApplicationTests.java
@@ -101,7 +98,24 @@ Backend API REST para la gestión de un minimarket, desarrollada con Spring Boot
 ```
 
 - API disponible en: `http://localhost:8080`
+- Swagger UI: `http://localhost:8080/swagger-ui/index.html`
+- OpenAPI JSON: `http://localhost:8080/v3/api-docs`
 - Consola H2 (solo ADMIN): `http://localhost:8080/h2-console`
+
+---
+
+## Documentación de la API
+
+La API cuenta con documentación interactiva generada automáticamente mediante **Swagger UI (OpenAPI 3.0)**.
+
+Disponible en: `http://localhost:8080/swagger-ui/index.html`
+
+Para probar endpoints protegidos directamente desde Swagger:
+1. Ejecuta `POST /auth/login` con tus credenciales
+2. Copia el token JWT de la respuesta
+3. Haz clic en el botón **Authorize 🔒** en la esquina superior derecha
+4. Ingresa el token en el formato: `Bearer <token>`
+5. Todos los endpoints protegidos quedarán autenticados
 
 ---
 
@@ -113,25 +127,20 @@ Backend API REST para la gestión de un minimarket, desarrollada con Spring Boot
 ./mvnw test
 ```
 
-Ejecuta las **125 pruebas** distribuidas en 13 clases y genera automáticamente el reporte de cobertura JaCoCo en `target/site/jacoco/index.html`.
+Ejecuta las **106 pruebas** distribuidas en 10 clases y genera automáticamente el reporte de cobertura JaCoCo en `target/site/jacoco/index.html`.
 
 ### Ejecutar una clase específica
 
 ```bash
-# Pruebas de entidades
-./mvnw test -Dtest=EntityTest
-
 # Pruebas unitarias de servicios (Mockito)
 ./mvnw test -Dtest=CarritoServiceImplTest
-./mvnw test -Dtest=CategoriaServiceImplTest
 ./mvnw test -Dtest=DetalleVentaServiceImplTest
 ./mvnw test -Dtest=InventarioServiceImplTest
 ./mvnw test -Dtest=ProductoServiceImplTest
-./mvnw test -Dtest=RolServiceImplTest
 ./mvnw test -Dtest=UsuarioServiceImplTest
 ./mvnw test -Dtest=VentaServiceImplTest
 
-# Pruebas de seguridad (Semana 6)
+# Pruebas de seguridad
 ./mvnw test -Dtest=JwtUtilTest
 ./mvnw test -Dtest=SecurityControllerTest
 
@@ -161,20 +170,17 @@ Disponible en `target/site/jacoco/index.html` tras ejecutar `./mvnw test`.
 
 | Clase | Tipo | Pruebas | Resultado |
 |---|---|---|---|
-| `EntityTest` | Unitaria (dominio) | 8 | ✅ Todas pasan |
 | `MinimarketApplicationTests` | Contexto Spring | 1 | ✅ Todas pasan |
 | `MinimarketIntegrationTest` | Integración (SpringBootTest) | 10 | ✅ Todas pasan |
 | `SecurityControllerTest` | Seguridad (MockMvc + @WithMockUser) | 31 | ✅ Todas pasan |
 | `JwtUtilTest` | Unitaria (JWT) | 17 | ✅ Todas pasan |
 | `CarritoServiceImplTest` | Unitaria (Mockito) | 8 | ✅ Todas pasan |
-| `CategoriaServiceImplTest` | Unitaria (Mockito) | 6 | ✅ Todas pasan |
 | `DetalleVentaServiceImplTest` | Unitaria (Mockito) | 7 | ✅ Todas pasan |
 | `InventarioServiceImplTest` | Unitaria (Mockito) | 9 | ✅ Todas pasan |
 | `ProductoServiceImplTest` | Unitaria (Mockito) | 7 | ✅ Todas pasan |
-| `RolServiceImplTest` | Unitaria (Mockito) | 3 | ✅ Todas pasan |
 | `UsuarioServiceImplTest` | Unitaria (Mockito) | 8 | ✅ Todas pasan |
 | `VentaServiceImplTest` | Unitaria (Mockito) | 10 | ✅ Todas pasan |
-| **Total** | | **125** | **✅ 0 fallos** |
+| **Total** | | **106** | **✅ 0 fallos** |
 
 ---
 
