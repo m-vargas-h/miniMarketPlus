@@ -6,13 +6,14 @@ import com.minimarket.repository.RolRepository;
 import com.minimarket.security.model.LoginRequest;
 import com.minimarket.security.util.JwtUtil;
 import com.minimarket.service.UsuarioService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +24,7 @@ import java.util.Set;
 
 @RestController
 @RequestMapping("/auth")
+@Tag(name = "Autenticación", description = "Endpoints públicos para login y registro de usuarios")
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
@@ -46,8 +48,12 @@ public class AuthController {
         this.passwordEncoder = passwordEncoder;
     }
 
-    // POST /auth/login — valida credenciales y devuelve el JWT
     @PostMapping("/login")
+    @Operation(
+        summary = "Iniciar sesión",
+        description = "Valida las credenciales del usuario y retorna un token JWT. " +
+                      "Usa este token en el botón Authorize (🔒) para acceder a los endpoints protegidos."
+    )
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(
@@ -64,20 +70,21 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    // POST /auth/registro — registra un nuevo usuario con rol ROLE_CLIENTE por defecto
     @PostMapping("/registro")
+    @Operation(
+        summary = "Registrar nuevo usuario",
+        description = "Crea un nuevo usuario con rol ROLE_CLIENTE por defecto. " +
+                      "Si el username ya existe retorna 409 CONFLICT."
+    )
     public ResponseEntity<?> registro(@RequestBody Usuario usuario) {
-        // Verificar si el username ya existe
         Optional<Usuario> existente = usuarioService.findByUsername(usuario.getUsername());
         if (existente.isPresent()) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body("El username ya está en uso.");
         }
 
-        // Encriptar contraseña
         usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
 
-        // Asignar rol ROLE_CLIENTE por defecto
         Optional<Rol> rolCliente = rolRepository.findByNombre("ROLE_CLIENTE");
         if (rolCliente.isPresent()) {
             usuario.setRoles(Set.of(rolCliente.get()));
@@ -87,17 +94,4 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body("Usuario registrado exitosamente.");
     }
-
-    //! nota para mi: el endpoint de registro no es parte de la API real, es solo para facilitar pruebas. 
-    //! En producción, el registro se haría desde una interfaz de administración o similar, no estaría abierto al público.
-    // endpoint de prueba para generar hashes de contraseñas (no es parte de la API real)
-    //@GetMapping("/test-hash")
-    //public ResponseEntity<?> testHash() {
-    //    BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-    //    Map<String, String> hashes = new HashMap<>();
-    //    hashes.put("admin", encoder.encode("admin123"));
-    //    hashes.put("empleado", encoder.encode("empleado123"));
-    //    hashes.put("cliente", encoder.encode("cliente123"));
-    //    return ResponseEntity.ok(hashes);
-    //}
 }
