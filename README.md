@@ -127,7 +127,7 @@ Para probar endpoints protegidos directamente desde Swagger:
 ./mvnw test
 ```
 
-Ejecuta las **106 pruebas** distribuidas en 10 clases y genera automáticamente el reporte de cobertura JaCoCo en `target/site/jacoco/index.html`.
+Ejecuta las **108 pruebas** distribuidas en 10 clases y genera automáticamente el reporte de cobertura JaCoCo en `target/site/jacoco/index.html`.
 
 ### Ejecutar una clase específica
 
@@ -162,7 +162,7 @@ Disponible en `target/site/jacoco/index.html` tras ejecutar `./mvnw test`.
 | `com.minimarket.security.service` | 73% | n/a |
 | `com.minimarket.security.filter` | 36% | 20% |
 | `com.minimarket.controller` | 33% | 12% |
-| **Total** | **71%** | **21%** |
+| **Total** | **72%** | **19%** |
 
 > **Nota:** La cobertura del paquete `controller` (33%) refleja que los tests MockMvc validan correctamente los códigos HTTP, pero Jackson no puede serializar las respuestas exitosas debido a referencias circulares entre entidades JPA (`Producto ↔ Categoria`). Esto reduce artificialmente la métrica sin afectar la validez de las pruebas de seguridad.
 
@@ -180,7 +180,24 @@ Disponible en `target/site/jacoco/index.html` tras ejecutar `./mvnw test`.
 | `ProductoServiceImplTest` | Unitaria (Mockito) | 7 | ✅ Todas pasan |
 | `UsuarioServiceImplTest` | Unitaria (Mockito) | 8 | ✅ Todas pasan |
 | `VentaServiceImplTest` | Unitaria (Mockito) | 10 | ✅ Todas pasan |
-| **Total** | | **106** | **✅ 0 fallos** |
+| **Total** | | **108** | **✅ 0 fallos** |
+
+---
+
+### Colección Postman
+
+Disponible en el repositorio: `MiniMarketPlus_Seguridad.postman_collection.json`
+
+Incluye 8 requests organizados en 4 escenarios que demuestran el flujo completo de seguridad:
+
+| Carpeta | Escenario |
+|---|---|
+| 1 — Autenticación | Login exitoso (admin y empleado) y login con credenciales incorrectas |
+| 2 — Acceso autorizado | Endpoints públicos y endpoints protegidos con rol correcto |
+| 3 — Acceso denegado por rol | Token válido pero rol insuficiente → 403 |
+| 4 — Acceso sin token | Endpoints protegidos sin Authorization header → 403 |
+
+Para ejecutar: importa el archivo en Postman y ejecuta primero los requests de la carpeta 1 para generar los tokens automáticamente.
 
 ---
 
