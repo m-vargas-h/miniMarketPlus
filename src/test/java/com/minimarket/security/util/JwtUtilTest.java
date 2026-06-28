@@ -1,6 +1,8 @@
 package com.minimarket.security.util;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -10,6 +12,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@DisplayName("JwtUtil — Pruebas unitarias de generación, extracción y validación de tokens JWT")
 class JwtUtilTest {
 
     private JwtUtil jwtUtil;
@@ -34,7 +37,8 @@ class JwtUtilTest {
     // Generación de token
 
     @Test
-    void testGenerateToken_AdminRetornaTokenNoNulo() {
+    @DisplayName("Token generado para admin no es nulo ni vacío")
+    void generateToken_adminRetornaTokenValido() {
         // Act
         String token = jwtUtil.generateToken(userAdmin);
 
@@ -44,23 +48,25 @@ class JwtUtilTest {
     }
 
     @Test
-    void testGenerateToken_TokenTieneFormatoJwt() {
+    @DisplayName("Token tiene formato JWT de tres partes separadas por punto")
+    void generateToken_tieneFormatoJwt() {
         // Act
         String token = jwtUtil.generateToken(userAdmin);
 
-        // Assert — un JWT siempre tiene 3 partes separadas por punto
+        // Assert — un JWT siempre tiene header.payload.signature
         String[] partes = token.split("\\.");
         assertEquals(3, partes.length, "El token JWT debe tener header.payload.signature");
     }
 
     @Test
-    void testGenerateToken_DistintosUsuariosGeneranTokensDistintos() {
+    @DisplayName("Usuarios distintos generan tokens distintos")
+    void generateToken_usuariosDistintosGeneranTokensDistintos() {
         // Act
         String tokenAdmin    = jwtUtil.generateToken(userAdmin);
         String tokenEmpleado = jwtUtil.generateToken(userEmpleado);
         String tokenCliente  = jwtUtil.generateToken(userCliente);
 
-        // Assert
+        // Assert — cada token debe ser único por usuario
         assertNotEquals(tokenAdmin, tokenEmpleado);
         assertNotEquals(tokenAdmin, tokenCliente);
         assertNotEquals(tokenEmpleado, tokenCliente);
@@ -69,7 +75,8 @@ class JwtUtilTest {
     // Extracción de username
 
     @Test
-    void testExtractUsername_RetornaUsernameDeAdmin() {
+    @DisplayName("Extrae username 'admin' del token de admin")
+    void extractUsername_retornaUsernameAdmin() {
         // Arrange
         String token = jwtUtil.generateToken(userAdmin);
 
@@ -81,7 +88,8 @@ class JwtUtilTest {
     }
 
     @Test
-    void testExtractUsername_RetornaUsernameDeEmpleado() {
+    @DisplayName("Extrae username 'empleado' del token de empleado")
+    void extractUsername_retornaUsernameEmpleado() {
         // Arrange
         String token = jwtUtil.generateToken(userEmpleado);
 
@@ -93,7 +101,8 @@ class JwtUtilTest {
     }
 
     @Test
-    void testExtractUsername_RetornaUsernameDeCliente() {
+    @DisplayName("Extrae username 'cliente' del token de cliente")
+    void extractUsername_retornaUsernameCliente() {
         // Arrange
         String token = jwtUtil.generateToken(userCliente);
 
@@ -107,7 +116,8 @@ class JwtUtilTest {
     // Extracción de roles
 
     @Test
-    void testExtractRoles_AdminContieneRoleAdmin() {
+    @DisplayName("Token de admin contiene ROLE_ADMIN en los claims")
+    void extractRoles_adminContieneRoleAdmin() {
         // Arrange
         String token = jwtUtil.generateToken(userAdmin);
 
@@ -121,7 +131,8 @@ class JwtUtilTest {
     }
 
     @Test
-    void testExtractRoles_EmpleadoContieneRoleEmpleado() {
+    @DisplayName("Token de empleado contiene ROLE_EMPLEADO en los claims")
+    void extractRoles_empleadoContieneRoleEmpleado() {
         // Arrange
         String token = jwtUtil.generateToken(userEmpleado);
 
@@ -134,7 +145,8 @@ class JwtUtilTest {
     }
 
     @Test
-    void testExtractRoles_ClienteContieneRoleCliente() {
+    @DisplayName("Token de cliente contiene ROLE_CLIENTE en los claims")
+    void extractRoles_clienteContieneRoleCliente() {
         // Arrange
         String token = jwtUtil.generateToken(userCliente);
 
@@ -147,21 +159,23 @@ class JwtUtilTest {
     }
 
     @Test
-    void testExtractRoles_AdminNoContieneRoleEmpleado() {
+    @DisplayName("Token de admin no contiene roles de otros perfiles")
+    void extractRoles_adminNoContieneRoleEmpleado() {
         // Arrange
         String token = jwtUtil.generateToken(userAdmin);
 
         // Act
         List<String> roles = jwtUtil.extractRoles(token);
 
-        // Assert
+        // Assert — los claims no deben mezclar roles entre usuarios
         assertFalse(roles.contains("ROLE_EMPLEADO"));
     }
 
     // Validación de token
 
     @Test
-    void testValidateToken_TokenValidoParaAdmin_RetornaTrue() {
+    @DisplayName("Token válido para su propio usuario retorna true")
+    void validateToken_tokenValidoParaAdmin() {
         // Arrange
         String token = jwtUtil.generateToken(userAdmin);
 
@@ -173,8 +187,9 @@ class JwtUtilTest {
     }
 
     @Test
-    void testValidateToken_TokenDeAdminContraEmpleado_RetornaFalse() {
-        // Arrange — token generado para admin pero validado contra empleado
+    @DisplayName("Token de admin rechazado al validar contra empleado")
+    void validateToken_tokenAdminContraEmpleadoRetornaFalse() {
+        // Arrange — token generado para admin, validado contra empleado
         String token = jwtUtil.generateToken(userAdmin);
 
         // Act
@@ -185,7 +200,8 @@ class JwtUtilTest {
     }
 
     @Test
-    void testValidateToken_TokenDeEmpleadoContraCliente_RetornaFalse() {
+    @DisplayName("Token de empleado rechazado al validar contra cliente")
+    void validateToken_tokenEmpleadoContraClienteRetornaFalse() {
         // Arrange
         String token = jwtUtil.generateToken(userEmpleado);
 
@@ -197,7 +213,8 @@ class JwtUtilTest {
     }
 
     @Test
-    void testValidateToken_TokenDeClienteEsValidoParaCliente() {
+    @DisplayName("Token de cliente es válido para el propio cliente")
+    void validateToken_tokenClienteValidoParaCliente() {
         // Arrange
         String token = jwtUtil.generateToken(userCliente);
 
@@ -208,30 +225,33 @@ class JwtUtilTest {
         assertTrue(valido);
     }
 
-    // Token inválido / malformado
+    // Token inválido 
 
     @Test
-    void testExtractUsername_TokenMalformado_LanzaExcepcion() {
+    @DisplayName("Token malformado lanza excepción al extraer username")
+    void extractUsername_tokenMalformadoLanzaExcepcion() {
         // Arrange
         String tokenInvalido = "esto.no.esunjwt";
 
-        // Act & Assert
+        // Act & Assert — token con estructura inválida debe ser rechazado
         assertThrows(Exception.class, () -> jwtUtil.extractUsername(tokenInvalido));
     }
 
     @Test
-    void testExtractUsername_TokenVacio_LanzaExcepcion() {
+    @DisplayName("Token vacío lanza excepción al extraer username")
+    void extractUsername_tokenVacioLanzaExcepcion() {
         // Act & Assert
         assertThrows(Exception.class, () -> jwtUtil.extractUsername(""));
     }
 
     @Test
-    void testExtractRoles_TokenManipulado_LanzaExcepcion() {
-        // Arrange — token con firma alterada
+    @DisplayName("Token con firma alterada lanza excepción al extraer roles")
+    void extractRoles_tokenManipuladoLanzaExcepcion() {
+        // Arrange — se reemplaza la firma por una cadena falsa
         String token = jwtUtil.generateToken(userAdmin);
         String tokenManipulado = token.substring(0, token.lastIndexOf('.') + 1) + "firmaFalsa";
 
-        // Act & Assert
+        // Act & Assert — firma inválida debe ser detectada y rechazada
         assertThrows(Exception.class, () -> jwtUtil.extractRoles(tokenManipulado));
     }
 }
