@@ -29,3 +29,9 @@ INSERT INTO usuario_roles (usuario_id, rol_id)
 INSERT INTO usuario_roles (usuario_id, rol_id) 
     VALUES ((SELECT id FROM usuario WHERE username = 'cliente'), 
             (SELECT id FROM rol WHERE nombre = 'ROLE_CLIENTE'));
+
+-- 4. CATEGORIAS
+INSERT INTO categoria (nombre) VALUES ('Abarrotes');
+INSERT INTO categoria (nombre) VALUES ('Bebidas');
+INSERT INTO categoria (nombre) VALUES ('Lácteos');
+INSERT INTO categoria (nombre) VALUES ('Aseo y limpieza');

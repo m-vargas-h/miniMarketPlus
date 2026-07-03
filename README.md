@@ -1,6 +1,6 @@
 # MiniMarket Plus
 
-Backend API REST para la gestión de un minimarket, desarrollada con Spring Boot 3 e integración completa de seguridad mediante Spring Security + JWT. Incluye suite de pruebas unitarias e integración con cobertura medida por JaCoCo. Documentación navegable de la API disponible mediante Swagger UI (OpenAPI 3.0).
+Backend API REST para la gestión de un minimarket, desarrollada con Spring Boot 3 e integración completa de seguridad mediante Spring Security + JWT. Incluye suite de pruebas unitarias e integración con cobertura medida por JaCoCo. Documentación navegable de la API disponible mediante Swagger UI (OpenAPI 3.0), con anotaciones completas de request/response, ejemplos y códigos de estado en los endpoints de Productos y Carrito.
 
 ---
 
@@ -110,12 +110,18 @@ La API cuenta con documentación interactiva generada automáticamente mediante 
 
 Disponible en: `http://localhost:8080/swagger-ui/index.html`
 
+Los endpoints de **Productos** y **Carrito** incluyen documentación completa con `@Operation`, `@ApiResponses` (200/204, 401, 403, 404 según corresponda), `@Parameter` en los `@PathVariable`, y ejemplos de request/response generados mediante `@Schema` en las entidades. Los endpoints protegidos declaran además `@SecurityRequirement(name = "bearerAuth")`, por lo que Swagger UI muestra el candado 🔒 correspondiente y exige el token antes de permitir "Try it out".
+
 Para probar endpoints protegidos directamente desde Swagger:
 1. Ejecuta `POST /auth/login` con tus credenciales
 2. Copia el token JWT de la respuesta
 3. Haz clic en el botón **Authorize 🔒** en la esquina superior derecha
 4. Ingresa el token en el formato: `Bearer <token>`
 5. Todos los endpoints protegidos quedarán autenticados
+
+### Exportar y validar el contrato OpenAPI
+
+El JSON completo de la especificación está disponible en `http://localhost:8080/v3/api-docs`. Puede importarse directamente en Postman usando la opción **"OpenAPI 3.0 Specification with a Postman Collection"**, lo que genera una colección completa y mantiene el vínculo con el contrato para validar que las respuestas reales coincidan con lo documentado.
 
 ---
 
@@ -199,6 +205,8 @@ Incluye 8 requests organizados en 4 escenarios que demuestran el flujo completo 
 
 Para ejecutar: importa el archivo en Postman y ejecuta primero los requests de la carpeta 1 para generar los tokens automáticamente.
 
+Alternativamente, puede importarse la especificación completa directamente desde `http://localhost:8080/v3/api-docs` (ver sección [Documentación de la API](#documentación-de-la-api)), lo que genera una colección equivalente a partir del contrato OpenAPI vigente.
+
 ---
 
 ## Usuarios de Prueba
@@ -236,6 +244,8 @@ Cargados automáticamente por `data.sql` al iniciar la aplicación:
 | POST | `/api/categorias` | ADMIN |
 | PUT | `/api/categorias/{id}` | ADMIN |
 | DELETE | `/api/categorias/{id}` | ADMIN |
+
+> Al crear un producto, `categoria.id` debe corresponder a una categoría existente (ver [Datos Iniciales](#datos-iniciales)). Puedes crear una categoría nueva con `POST /api/categorias` si necesitas una distinta.
 
 ### Inventario, Ventas y Detalle Ventas
 
@@ -303,6 +313,8 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
 | @PreAuthorize | Spring Method Security | Acceso no autorizado por rol |
 | Session STATELESS | SessionCreationPolicy | Session fixation attacks |
 
+> **Nota conocida:** el proyecto no define un `AuthenticationEntryPoint` personalizado, por lo que Spring Security responde `403` tanto para peticiones sin token como para peticiones con rol insuficiente (en vez de `401` para el primer caso). Los códigos documentados en Swagger reflejan la semántica REST estándar; el comportamiento real actual se limita a `403` en ambos casos.
+
 ---
 
 ## Payload del JWT
@@ -325,3 +337,4 @@ El archivo `data.sql` inserta automáticamente al arrancar:
 - 3 roles: `ROLE_ADMIN`, `ROLE_EMPLEADO`, `ROLE_CLIENTE`
 - 3 usuarios con contraseñas hasheadas en BCrypt
 - Asignación de un rol por usuario
+- 4 categorías: `Abarrotes` (id 1), `Bebidas`, `Lácteos`, `Aseo y limpieza`, disponibles para asociar al crear productos vía `POST /api/productos`
