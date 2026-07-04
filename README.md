@@ -192,20 +192,11 @@ Disponible en `target/site/jacoco/index.html` tras ejecutar `./mvnw test`.
 
 ### Colección Postman
 
-Disponible en el repositorio: `MiniMarketPlus_Seguridad.postman_collection.json`
+Disponible en el repositorio: `openapi.json`
 
-Incluye 8 requests organizados en 4 escenarios que demuestran el flujo completo de seguridad:
+Corresponde a la especificación OpenAPI 3.0 completa, exportada directamente desde `http://localhost:8080/v3/api-docs`. Al importarla en Postman (opción **"OpenAPI 3.0 Specification with a Postman Collection"**), genera automáticamente una colección con todas las rutas del backend agrupadas por controlador (Autenticación, Productos, Categorías, Carrito, Inventario, Ventas, Detalle Ventas, Usuarios), manteniendo el vínculo con el contrato para validar que las respuestas reales coincidan con lo documentado en Swagger.
 
-| Carpeta | Escenario |
-|---|---|
-| 1 — Autenticación | Login exitoso (admin y empleado) y login con credenciales incorrectas |
-| 2 — Acceso autorizado | Endpoints públicos y endpoints protegidos con rol correcto |
-| 3 — Acceso denegado por rol | Token válido pero rol insuficiente → 403 |
-| 4 — Acceso sin token | Endpoints protegidos sin Authorization header → 403 |
-
-Para ejecutar: importa el archivo en Postman y ejecuta primero los requests de la carpeta 1 para generar los tokens automáticamente.
-
-Alternativamente, puede importarse la especificación completa directamente desde `http://localhost:8080/v3/api-docs` (ver sección [Documentación de la API](#documentación-de-la-api)), lo que genera una colección equivalente a partir del contrato OpenAPI vigente.
+Para ejecutar: importa el archivo en Postman, autentícate primero con `POST /auth/login` para obtener el token JWT, y configúralo como Bearer Token a nivel de colección (o de cada carpeta) para que se propague automáticamente a los endpoints protegidos.
 
 ---
 
