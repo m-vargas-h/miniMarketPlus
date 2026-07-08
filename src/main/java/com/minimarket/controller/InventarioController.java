@@ -12,12 +12,18 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/api/inventario")
@@ -27,12 +33,26 @@ public class InventarioController {
     @Autowired
     private InventarioService inventarioService;
 
+    // --- Helper: arma un EntityModel<Inventario> con sus enlaces HATEOAS ---
+    private EntityModel<Inventario> toModel(Inventario inventario) {
+        EntityModel<Inventario> model = EntityModel.of(inventario);
+        model.add(linkTo(methodOn(InventarioController.class).obtenerMovimientoPorId(inventario.getId())).withSelfRel());
+        model.add(linkTo(methodOn(InventarioController.class).listarMovimientosDeInventario()).withRel("inventario"));
+        if (inventario.getProducto() != null) {
+            model.add(linkTo(methodOn(InventarioController.class).listarMovimientosPorProducto(inventario.getProducto().getId()))
+                    .withRel("movimientos-producto"));
+            model.add(linkTo(methodOn(ProductoController.class).obtenerProductoPorId(inventario.getProducto().getId()))
+                    .withRel("producto"));
+        }
+        return model;
+    }
+
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLEADO')")
     @SecurityRequirement(name = "bearerAuth")
     @Operation(
         summary = "Listar movimientos de inventario",
-        description = "Retorna todos los movimientos de entrada y salida registrados en el inventario. Requiere rol ADMIN o EMPLEADO."
+        description = "Retorna todos los movimientos de entrada y salida registrados en el inventario, con enlaces HATEOAS. Requiere rol ADMIN o EMPLEADO."
     )
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Listado obtenido correctamente",
@@ -41,8 +61,12 @@ public class InventarioController {
         @ApiResponse(responseCode = "401", description = "No autenticado — falta el token JWT", content = @Content),
         @ApiResponse(responseCode = "403", description = "Autenticado pero sin rol ADMIN o EMPLEADO", content = @Content)
     })
-    public List<Inventario> listarMovimientosDeInventario() {
-        return inventarioService.findAll();
+    public CollectionModel<EntityModel<Inventario>> listarMovimientosDeInventario() {
+        List<EntityModel<Inventario>> movimientos = inventarioService.findAll().stream()
+                .map(this::toModel)
+                .collect(Collectors.toList());
+        return CollectionModel.of(movimientos,
+                linkTo(methodOn(InventarioController.class).listarMovimientosDeInventario()).withSelfRel());
     }
 
     @GetMapping("/{id}")
@@ -50,7 +74,7 @@ public class InventarioController {
     @SecurityRequirement(name = "bearerAuth")
     @Operation(
         summary = "Obtener movimiento por ID",
-        description = "Retorna un movimiento de inventario específico por su ID. Requiere rol ADMIN o EMPLEADO."
+        description = "Retorna un movimiento de inventario específico por su ID, con enlaces HATEOAS. Requiere rol ADMIN o EMPLEADO."
     )
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Movimiento encontrado",
@@ -59,11 +83,39 @@ public class InventarioController {
         @ApiResponse(responseCode = "403", description = "Autenticado pero sin rol ADMIN o EMPLEADO", content = @Content),
         @ApiResponse(responseCode = "404", description = "No existe un movimiento con el ID indicado", content = @Content)
     })
-    public ResponseEntity<Inventario> obtenerMovimientoPorId(
+    public EntityModel<Inventario> obtenerMovimientoPorId(
             @Parameter(description = "ID del movimiento a buscar", example = "1", required = true)
             @PathVariable Long id) {
         Inventario inventario = inventarioService.findById(id);
-        return (inventario != null) ? ResponseEntity.ok(inventario) : ResponseEntity.notFound().build();
+        if (inventario == null) {
+            return null;
+        }
+        return toModel(inventario);
+    }
+
+    @GetMapping("/producto/{productoId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLEADO')")
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(
+        summary = "Listar movimientos por producto",
+        description = "Retorna todos los movimientos de inventario asociados a un producto específico, con enlaces HATEOAS. Requiere rol ADMIN o EMPLEADO."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Listado obtenido correctamente",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                array = @ArraySchema(schema = @Schema(implementation = Inventario.class)))),
+        @ApiResponse(responseCode = "401", description = "No autenticado — falta el token JWT", content = @Content),
+        @ApiResponse(responseCode = "403", description = "Autenticado pero sin rol ADMIN o EMPLEADO", content = @Content)
+    })
+    public CollectionModel<EntityModel<Inventario>> listarMovimientosPorProducto(
+            @Parameter(description = "ID del producto", example = "1", required = true)
+            @PathVariable Long productoId) {
+        List<EntityModel<Inventario>> movimientos = inventarioService.findByProductoId(productoId).stream()
+                .map(this::toModel)
+                .collect(Collectors.toList());
+        return CollectionModel.of(movimientos,
+                linkTo(methodOn(InventarioController.class).listarMovimientosPorProducto(productoId)).withSelfRel(),
+                linkTo(methodOn(ProductoController.class).obtenerProductoPorId(productoId)).withRel("producto"));
     }
 
     @PostMapping
@@ -79,8 +131,8 @@ public class InventarioController {
         @ApiResponse(responseCode = "401", description = "No autenticado — falta el token JWT", content = @Content),
         @ApiResponse(responseCode = "403", description = "Autenticado pero sin rol ADMIN o EMPLEADO", content = @Content)
     })
-    public Inventario registrarMovimiento(@RequestBody Inventario inventario) {
-        return inventarioService.save(inventario);
+    public EntityModel<Inventario> registrarMovimiento(@RequestBody Inventario inventario) {
+        return toModel(inventarioService.save(inventario));
     }
 
     @PutMapping("/{id}")
@@ -97,14 +149,14 @@ public class InventarioController {
         @ApiResponse(responseCode = "403", description = "Autenticado pero sin rol ADMIN o EMPLEADO", content = @Content),
         @ApiResponse(responseCode = "404", description = "No existe un movimiento con el ID indicado", content = @Content)
     })
-    public ResponseEntity<Inventario> actualizarMovimiento(
+    public ResponseEntity<EntityModel<Inventario>> actualizarMovimiento(
             @Parameter(description = "ID del movimiento a actualizar", example = "1", required = true)
             @PathVariable Long id,
             @RequestBody Inventario inventario) {
         Inventario existente = inventarioService.findById(id);
         if (existente != null) {
             inventario.setId(id);
-            return ResponseEntity.ok(inventarioService.save(inventario));
+            return ResponseEntity.ok(toModel(inventarioService.save(inventario)));
         }
         return ResponseEntity.notFound().build();
     }

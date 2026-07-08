@@ -12,6 +12,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,6 +22,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/api/usuarios")
@@ -34,10 +40,20 @@ public class UsuarioController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    // --- Helper: arma un EntityModel<Usuario> con sus enlaces HATEOAS ---
+    private EntityModel<Usuario> toModel(Usuario usuario) {
+        EntityModel<Usuario> model = EntityModel.of(usuario);
+        model.add(linkTo(methodOn(UsuarioController.class).obtenerUsuarioPorId(usuario.getId())).withSelfRel());
+        model.add(linkTo(methodOn(UsuarioController.class).listarUsuarios()).withRel("usuarios"));
+        model.add(linkTo(methodOn(CarritoController.class).listarCarritoPorUsuario(usuario.getId())).withRel("carritos"));
+        model.add(linkTo(methodOn(VentaController.class).listarVentasPorUsuario(usuario.getId())).withRel("ventas"));
+        return model;
+    }
+
     @GetMapping
     @Operation(
         summary = "Listar todos los usuarios",
-        description = "Retorna la lista completa de usuarios registrados en el sistema. Requiere rol ADMIN."
+        description = "Retorna la lista completa de usuarios registrados en el sistema, con enlaces HATEOAS. Requiere rol ADMIN."
     )
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Listado obtenido correctamente",
@@ -46,14 +62,18 @@ public class UsuarioController {
         @ApiResponse(responseCode = "401", description = "No autenticado — falta el token JWT", content = @Content),
         @ApiResponse(responseCode = "403", description = "Autenticado pero sin rol ADMIN", content = @Content)
     })
-    public List<Usuario> listarUsuarios() {
-        return usuarioService.findAll();
+    public CollectionModel<EntityModel<Usuario>> listarUsuarios() {
+        List<EntityModel<Usuario>> usuarios = usuarioService.findAll().stream()
+                .map(this::toModel)
+                .collect(Collectors.toList());
+        return CollectionModel.of(usuarios,
+                linkTo(methodOn(UsuarioController.class).listarUsuarios()).withSelfRel());
     }
 
     @GetMapping("/{id}")
     @Operation(
         summary = "Obtener usuario por ID",
-        description = "Retorna un usuario específico por su ID. Requiere rol ADMIN."
+        description = "Retorna un usuario específico por su ID, con enlaces HATEOAS. Requiere rol ADMIN."
     )
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Usuario encontrado",
@@ -62,12 +82,11 @@ public class UsuarioController {
         @ApiResponse(responseCode = "403", description = "Autenticado pero sin rol ADMIN", content = @Content),
         @ApiResponse(responseCode = "404", description = "No existe un usuario con el ID indicado", content = @Content)
     })
-    public ResponseEntity<Usuario> obtenerUsuarioPorId(
+    public EntityModel<Usuario> obtenerUsuarioPorId(
             @Parameter(description = "ID del usuario a buscar", example = "1", required = true)
             @PathVariable Long id) {
         Optional<Usuario> usuario = usuarioService.findById(id);
-        return usuario.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        return usuario.map(this::toModel).orElse(null);
     }
 
     @PostMapping
@@ -81,9 +100,9 @@ public class UsuarioController {
         @ApiResponse(responseCode = "401", description = "No autenticado — falta el token JWT", content = @Content),
         @ApiResponse(responseCode = "403", description = "Autenticado pero sin rol ADMIN", content = @Content)
     })
-    public Usuario guardarUsuario(@RequestBody Usuario usuario) {
+    public EntityModel<Usuario> guardarUsuario(@RequestBody Usuario usuario) {
         usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
-        return usuarioService.save(usuario);
+        return toModel(usuarioService.save(usuario));
     }
 
     @PutMapping("/{id}")
@@ -98,7 +117,7 @@ public class UsuarioController {
         @ApiResponse(responseCode = "403", description = "Autenticado pero sin rol ADMIN", content = @Content),
         @ApiResponse(responseCode = "404", description = "No existe un usuario con el ID indicado", content = @Content)
     })
-    public ResponseEntity<Usuario> actualizarUsuario(
+    public ResponseEntity<EntityModel<Usuario>> actualizarUsuario(
             @Parameter(description = "ID del usuario a actualizar", example = "1", required = true)
             @PathVariable Long id,
             @RequestBody Usuario usuario) {
@@ -106,7 +125,7 @@ public class UsuarioController {
         if (usuarioExistente.isPresent()) {
             usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
             usuario.setId(id);
-            return ResponseEntity.ok(usuarioService.save(usuario));
+            return ResponseEntity.ok(toModel(usuarioService.save(usuario)));
         }
         return ResponseEntity.notFound().build();
     }

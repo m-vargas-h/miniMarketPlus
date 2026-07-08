@@ -12,12 +12,18 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/api/categorias")
@@ -27,35 +33,51 @@ public class CategoriaController {
     @Autowired
     private CategoriaService categoriaService;
 
+    // --- Helper: arma un EntityModel<Categoria> con sus enlaces HATEOAS ---
+    private EntityModel<Categoria> toModel(Categoria categoria) {
+        EntityModel<Categoria> model = EntityModel.of(categoria);
+        model.add(linkTo(methodOn(CategoriaController.class).obtenerCategoriaPorId(categoria.getId())).withSelfRel());
+        model.add(linkTo(methodOn(CategoriaController.class).listarCategorias()).withRel("categorias"));
+        model.add(linkTo(methodOn(ProductoController.class).listarProductosPorCategoria(categoria.getId())).withRel("productos"));
+        return model;
+    }
+
     @GetMapping
     @Operation(
         summary = "Listar todas las categorías",
-        description = "Retorna la lista completa de categorías disponibles. Acceso público."
+        description = "Retorna la lista completa de categorías disponibles con enlaces HATEOAS. Acceso público."
     )
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Listado obtenido correctamente",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                 array = @ArraySchema(schema = @Schema(implementation = Categoria.class))))
     })
-    public List<Categoria> listarCategorias() {
-        return categoriaService.findAll();
+    public CollectionModel<EntityModel<Categoria>> listarCategorias() {
+        List<EntityModel<Categoria>> categorias = categoriaService.findAll().stream()
+                .map(this::toModel)
+                .collect(Collectors.toList());
+        return CollectionModel.of(categorias,
+                linkTo(methodOn(CategoriaController.class).listarCategorias()).withSelfRel());
     }
 
     @GetMapping("/{id}")
     @Operation(
         summary = "Obtener categoría por ID",
-        description = "Retorna una categoría específica por su ID. Acceso público."
+        description = "Retorna una categoría específica por su ID con enlaces HATEOAS. Acceso público."
     )
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Categoría encontrada",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = Categoria.class))),
         @ApiResponse(responseCode = "404", description = "No existe una categoría con el ID indicado", content = @Content)
     })
-    public ResponseEntity<Categoria> obtenerCategoriaPorId(
+    public EntityModel<Categoria> obtenerCategoriaPorId(
             @Parameter(description = "ID de la categoría a buscar", example = "1", required = true)
             @PathVariable Long id) {
         Categoria categoria = categoriaService.findById(id);
-        return (categoria != null) ? ResponseEntity.ok(categoria) : ResponseEntity.notFound().build();
+        if (categoria == null) {
+            return null;
+        }
+        return toModel(categoria);
     }
 
     @PostMapping
@@ -71,8 +93,8 @@ public class CategoriaController {
         @ApiResponse(responseCode = "401", description = "No autenticado — falta el token JWT", content = @Content),
         @ApiResponse(responseCode = "403", description = "Autenticado pero sin rol ADMIN", content = @Content)
     })
-    public Categoria guardarCategoria(@RequestBody Categoria categoria) {
-        return categoriaService.save(categoria);
+    public EntityModel<Categoria> guardarCategoria(@RequestBody Categoria categoria) {
+        return toModel(categoriaService.save(categoria));
     }
 
     @PutMapping("/{id}")
@@ -89,14 +111,14 @@ public class CategoriaController {
         @ApiResponse(responseCode = "403", description = "Autenticado pero sin rol ADMIN", content = @Content),
         @ApiResponse(responseCode = "404", description = "No existe una categoría con el ID indicado", content = @Content)
     })
-    public ResponseEntity<Categoria> actualizarCategoria(
+    public ResponseEntity<EntityModel<Categoria>> actualizarCategoria(
             @Parameter(description = "ID de la categoría a actualizar", example = "1", required = true)
             @PathVariable Long id,
             @RequestBody Categoria categoria) {
         Categoria categoriaExistente = categoriaService.findById(id);
         if (categoriaExistente != null) {
             categoria.setId(id);
-            return ResponseEntity.ok(categoriaService.save(categoria));
+            return ResponseEntity.ok(toModel(categoriaService.save(categoria)));
         }
         return ResponseEntity.notFound().build();
     }

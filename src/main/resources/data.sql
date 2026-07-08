@@ -35,3 +35,13 @@ INSERT INTO categoria (nombre) VALUES ('Abarrotes');
 INSERT INTO categoria (nombre) VALUES ('Bebidas');
 INSERT INTO categoria (nombre) VALUES ('Lácteos');
 INSERT INTO categoria (nombre) VALUES ('Aseo y limpieza');
+
+-- 5. PRODUCTOS
+INSERT INTO producto (nombre, precio, stock, categoria_id) VALUES ('Arroz 1kg', 1290.0, 100, (SELECT id FROM categoria WHERE nombre = 'Abarrotes'));
+INSERT INTO producto (nombre, precio, stock, categoria_id) VALUES ('Fideos 400g', 990.0, 80, (SELECT id FROM categoria WHERE nombre = 'Abarrotes'));
+INSERT INTO producto (nombre, precio, stock, categoria_id) VALUES ('Coca-Cola 1.5L', 1590.0, 60, (SELECT id FROM categoria WHERE nombre = 'Bebidas'));
+INSERT INTO producto (nombre, precio, stock, categoria_id) VALUES ('Agua mineral 500ml', 690.0, 120, (SELECT id FROM categoria WHERE nombre = 'Bebidas'));
+INSERT INTO producto (nombre, precio, stock, categoria_id) VALUES ('Leche entera 1L', 1190.0, 50, (SELECT id FROM categoria WHERE nombre = 'Lácteos'));
+INSERT INTO producto (nombre, precio, stock, categoria_id) VALUES ('Yogurt natural', 790.0, 40, (SELECT id FROM categoria WHERE nombre = 'Lácteos'));
+INSERT INTO producto (nombre, precio, stock, categoria_id) VALUES ('Detergente 1kg', 3490.0, 30, (SELECT id FROM categoria WHERE nombre = 'Aseo y limpieza'));
+INSERT INTO producto (nombre, precio, stock, categoria_id) VALUES ('Cloro 1L', 1290.0, 45, (SELECT id FROM categoria WHERE nombre = 'Aseo y limpieza'));
