@@ -33,7 +33,7 @@ public class ProductoController {
     @Autowired
     private ProductoService productoService;
 
-    // --- Helper: arma un EntityModel<Producto> con sus enlaces HATEOAS ---
+    // Arma un EntityModel<Producto> con sus enlaces HATEOAS
     private EntityModel<Producto> toModel(Producto producto) {
         EntityModel<Producto> model = EntityModel.of(producto);
         model.add(linkTo(methodOn(ProductoController.class).obtenerProductoPorId(producto.getId())).withSelfRel());

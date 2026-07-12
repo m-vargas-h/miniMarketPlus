@@ -33,7 +33,7 @@ public class DetalleVentaController {
     @Autowired
     private DetalleVentaService detalleVentaService;
 
-    // --- Helper: arma un EntityModel<DetalleVenta> con sus enlaces HATEOAS ---
+    // Arma un EntityModel<DetalleVenta> con sus enlaces HATEOAS
     private EntityModel<DetalleVenta> toModel(DetalleVenta detalleVenta) {
         EntityModel<DetalleVenta> model = EntityModel.of(detalleVenta);
         model.add(linkTo(methodOn(DetalleVentaController.class).obtenerDetalleVentaPorId(detalleVenta.getId())).withSelfRel());

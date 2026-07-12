@@ -43,7 +43,7 @@ public class SecurityConfig {
 
             // Headers de seguridad HTTP
             .headers(headers -> headers
-                // Evita que el navegador infiera el tipo de contenido (protección XSS)
+                // Evita que el navegador infiera el tipo de contenido
                 .contentTypeOptions(contentType -> {})
                 // Permite frames solo desde el mismo origen (necesario para H2 console)
                 .frameOptions(frame -> frame.sameOrigin())

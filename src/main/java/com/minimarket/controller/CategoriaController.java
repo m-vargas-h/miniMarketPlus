@@ -33,7 +33,7 @@ public class CategoriaController {
     @Autowired
     private CategoriaService categoriaService;
 
-    // --- Helper: arma un EntityModel<Categoria> con sus enlaces HATEOAS ---
+    // Arma un EntityModel<Categoria> con sus enlaces HATEOAS
     private EntityModel<Categoria> toModel(Categoria categoria) {
         EntityModel<Categoria> model = EntityModel.of(categoria);
         model.add(linkTo(methodOn(CategoriaController.class).obtenerCategoriaPorId(categoria.getId())).withSelfRel());

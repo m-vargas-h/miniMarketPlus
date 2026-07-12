@@ -40,7 +40,7 @@ public class UsuarioController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    // --- Helper: arma un EntityModel<Usuario> con sus enlaces HATEOAS ---
+    // Arma un EntityModel<Usuario> con sus enlaces HATEOAS
     private EntityModel<Usuario> toModel(Usuario usuario) {
         EntityModel<Usuario> model = EntityModel.of(usuario);
         model.add(linkTo(methodOn(UsuarioController.class).obtenerUsuarioPorId(usuario.getId())).withSelfRel());

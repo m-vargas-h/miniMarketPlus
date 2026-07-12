@@ -34,7 +34,7 @@ public class CarritoController {
     @Autowired
     private CarritoService carritoService;
 
-    // --- Helper: arma un EntityModel<Carrito> con sus enlaces HATEOAS ---
+    // Arma un EntityModel<Carrito> con sus enlaces HATEOAS
     private EntityModel<Carrito> toModel(Carrito carrito) {
         EntityModel<Carrito> model = EntityModel.of(carrito);
         model.add(linkTo(methodOn(CarritoController.class).obtenerCarritoPorId(carrito.getId())).withSelfRel());

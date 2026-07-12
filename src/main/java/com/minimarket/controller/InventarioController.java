@@ -33,7 +33,7 @@ public class InventarioController {
     @Autowired
     private InventarioService inventarioService;
 
-    // --- Helper: arma un EntityModel<Inventario> con sus enlaces HATEOAS ---
+    // Arma un EntityModel<Inventario> con sus enlaces HATEOAS
     private EntityModel<Inventario> toModel(Inventario inventario) {
         EntityModel<Inventario> model = EntityModel.of(inventario);
         model.add(linkTo(methodOn(InventarioController.class).obtenerMovimientoPorId(inventario.getId())).withSelfRel());
