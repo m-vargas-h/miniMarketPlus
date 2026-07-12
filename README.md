@@ -1,6 +1,6 @@
 # MiniMarket Plus
 
-Backend API REST para la gestión de un minimarket, desarrollada con Spring Boot 3 e integración completa de seguridad mediante Spring Security + JWT. Incluye suite de pruebas unitarias e integración con cobertura medida por JaCoCo. Documentación navegable de la API disponible mediante Swagger UI (OpenAPI 3.0), con anotaciones completas de request/response, ejemplos y códigos de estado en los endpoints de Productos y Carrito.
+Backend API REST para la gestión de un minimarket, desarrollada con Spring Boot 3 e integración completa de seguridad mediante Spring Security + JWT. Incluye suite de pruebas unitarias e integración con cobertura medida por JaCoCo. Documentación navegable de la API disponible mediante Swagger UI (OpenAPI 3.0), con anotaciones completas de request/response, ejemplos y códigos de estado en todos los controladores, además de navegación dinámica entre recursos mediante HATEOAS (EntityModel/CollectionModel).
 
 ---
 
@@ -13,6 +13,7 @@ Backend API REST para la gestión de un minimarket, desarrollada con Spring Boot
 | Spring Security | 6.x | Autenticación y autorización |
 | jjwt | 0.11.5 | Generación y validación de JWT |
 | springdoc-openapi | 2.3.0 | Documentación Swagger UI / OpenAPI 3.0 |
+| Spring HATEOAS | Incluido en spring-boot-starter-hateoas | Enlaces dinámicos EntityModel/CollectionModel |
 | H2 Database | Runtime | Base de datos en memoria |
 | Lombok | Latest | Reducción de boilerplate |
 | JUnit 5 | Incluido en starter-test | Framework de pruebas unitarias |
@@ -110,7 +111,7 @@ La API cuenta con documentación interactiva generada automáticamente mediante 
 
 Disponible en: `http://localhost:8080/swagger-ui/index.html`
 
-Los endpoints de **Productos** y **Carrito** incluyen documentación completa con `@Operation`, `@ApiResponses` (200/204, 401, 403, 404 según corresponda), `@Parameter` en los `@PathVariable`, y ejemplos de request/response generados mediante `@Schema` en las entidades. Los endpoints protegidos declaran además `@SecurityRequirement(name = "bearerAuth")`, por lo que Swagger UI muestra el candado 🔒 correspondiente y exige el token antes de permitir "Try it out".
+Todos los controladores (Productos, Categorías, Carrito, Inventario, Ventas, Detalle de Ventas y Usuarios) incluyen documentación completa con `@Operation`, `@ApiResponses` (200/204, 401, 403, 404 según corresponda), `@Parameter` en los `@PathVariable`, y ejemplos de request/response generados mediante `@Schema` en las entidades. Los endpoints protegidos declaran además `@SecurityRequirement(name = "bearerAuth")`, por lo que Swagger UI muestra el candado 🔒 correspondiente y exige el token antes de permitir "Try it out".
 
 Para probar endpoints protegidos directamente desde Swagger:
 1. Ejecuta `POST /auth/login` con tus credenciales
@@ -118,6 +119,20 @@ Para probar endpoints protegidos directamente desde Swagger:
 3. Haz clic en el botón **Authorize 🔒** en la esquina superior derecha
 4. Ingresa el token en el formato: `Bearer <token>`
 5. Todos los endpoints protegidos quedarán autenticados
+
+### Navegación dinámica con HATEOAS
+
+Todas las respuestas que exponen una entidad (individual o en colección) incluyen enlaces dinámicos generados con `EntityModel`/`CollectionModel`, permitiendo descubrir recursos relacionados sin necesidad de conocer de antemano la estructura de URLs de la API. Cada respuesta incluye como mínimo un enlace `self` y un enlace hacia la colección completa, además de enlaces relacionales explícitos hacia entidades vinculadas (por ejemplo, un producto enlaza hacia su categoría, y una categoría enlaza de vuelta hacia sus productos).
+
+Para habilitar esta navegación bidireccional se agregaron 5 endpoints de filtrado que exponen métodos de servicio existentes:
+
+| Endpoint | Entidad | Descripción |
+|---|---|---|
+| `GET /api/productos/categoria/{categoriaId}` | Producto | Productos de una categoría específica |
+| `GET /api/inventario/producto/{productoId}` | Inventario | Movimientos de inventario de un producto |
+| `GET /api/carrito/usuario/{usuarioId}` | Carrito | Items de carrito de un usuario |
+| `GET /api/ventas/usuario/{usuarioId}` | Venta | Ventas realizadas por un usuario |
+| `GET /api/detalle-ventas/venta/{ventaId}` | DetalleVenta | Líneas de detalle de una venta |
 
 ### Exportar y validar el contrato OpenAPI
 
@@ -163,14 +178,17 @@ Disponible en `target/site/jacoco/index.html` tras ejecutar `./mvnw test`.
 | `com.minimarket.security.config` | 100% | n/a |
 | `com.minimarket.security.util` | 100% | 75% |
 | `com.minimarket.security.model` | 100% | n/a |
-| `com.minimarket.entity` | 98% | n/a |
-| `com.minimarket.service.impl` | 93% | 100% |
+| `com.minimarket.entity` | 94% | n/a |
+| `com.minimarket.service.impl` | 84% | 100% |
 | `com.minimarket.security.service` | 73% | n/a |
+| `com.minimarket` | 37% | n/a |
 | `com.minimarket.security.filter` | 36% | 20% |
-| `com.minimarket.controller` | 33% | 12% |
-| **Total** | **72%** | **19%** |
+| `com.minimarket.controller` | 42% | 12% |
+| **Total** | **61%** | **20%** |
 
-> **Nota:** La cobertura del paquete `controller` (33%) refleja que los tests MockMvc validan correctamente los códigos HTTP, pero Jackson no puede serializar las respuestas exitosas debido a referencias circulares entre entidades JPA (`Producto ↔ Categoria`). Esto reduce artificialmente la métrica sin afectar la validez de las pruebas de seguridad.
+> **Nota:** la cobertura de `controller` (42%) y la leve baja en `entity`/`service.impl` respecto a semanas anteriores reflejan la incorporación de HATEOAS: se agregaron los métodos `toModel()` en los 7 controladores y 5 endpoints nuevos de filtrado (`/categoria/{id}`, `/producto/{id}`, `/usuario/{id}`, `/venta/{id}`), cuyo código aún no tiene tests unitarios dedicados. Los 108 tests existentes siguen validando correctamente la seguridad, los servicios y los casos base de cada controlador.
+
+> **Pendiente a futuro:** agregar tests unitarios/MockMvc dedicados a los 5 endpoints nuevos de filtrado HATEOAS y a los métodos `toModel()` de cada controlador, para elevar la cobertura del paquete `controller` y confirmar la estructura de los enlaces `_links` generados.
 
 ### Resumen de pruebas
 
@@ -227,6 +245,7 @@ Cargados automáticamente por `data.sql` al iniciar la aplicación:
 |---|---|---|
 | GET | `/api/productos` | Público |
 | GET | `/api/productos/{id}` | Público |
+| GET | `/api/productos/categoria/{categoriaId}` | Público |
 | POST | `/api/productos` | ADMIN |
 | PUT | `/api/productos/{id}` | ADMIN |
 | DELETE | `/api/productos/{id}` | ADMIN |
@@ -243,9 +262,12 @@ Cargados automáticamente por `data.sql` al iniciar la aplicación:
 | Método | Endpoint | Rol requerido |
 |---|---|---|
 | GET / POST / PUT | `/api/inventario/**` | ADMIN, EMPLEADO |
+| GET | `/api/inventario/producto/{productoId}` | ADMIN, EMPLEADO |
 | DELETE | `/api/inventario/{id}` | ADMIN |
 | GET / POST | `/api/ventas/**` | ADMIN, EMPLEADO |
+| GET | `/api/ventas/usuario/{usuarioId}` | ADMIN, EMPLEADO |
 | GET / POST / PUT | `/api/detalle-ventas/**` | ADMIN, EMPLEADO |
+| GET | `/api/detalle-ventas/venta/{ventaId}` | ADMIN, EMPLEADO |
 | DELETE | `/api/detalle-ventas/{id}` | ADMIN |
 
 ### Carrito
@@ -253,6 +275,7 @@ Cargados automáticamente por `data.sql` al iniciar la aplicación:
 | Método | Endpoint | Rol requerido |
 |---|---|---|
 | GET / POST / PUT / DELETE | `/api/carrito/**` | ADMIN, CLIENTE |
+| GET | `/api/carrito/usuario/{usuarioId}` | ADMIN, CLIENTE |
 
 ### Usuarios
 
@@ -304,7 +327,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
 | @PreAuthorize | Spring Method Security | Acceso no autorizado por rol |
 | Session STATELESS | SessionCreationPolicy | Session fixation attacks |
 
-> **Nota conocida:** el proyecto no define un `AuthenticationEntryPoint` personalizado, por lo que Spring Security responde `403` tanto para peticiones sin token como para peticiones con rol insuficiente (en vez de `401` para el primer caso). Los códigos documentados en Swagger reflejan la semántica REST estándar; el comportamiento real actual se limita a `403` en ambos casos.
+> **Nota:** el proyecto no define un `AuthenticationEntryPoint` personalizado, por lo que Spring Security responde `403` tanto para peticiones sin token como para peticiones con rol insuficiente (en vez de `401` para el primer caso). Los códigos documentados en Swagger reflejan la semántica REST estándar; el comportamiento real actual se limita a `403` en ambos casos.
 
 ---
 
@@ -329,3 +352,6 @@ El archivo `data.sql` inserta automáticamente al arrancar:
 - 3 usuarios con contraseñas hasheadas en BCrypt
 - Asignación de un rol por usuario
 - 4 categorías: `Abarrotes` (id 1), `Bebidas`, `Lácteos`, `Aseo y limpieza`, disponibles para asociar al crear productos vía `POST /api/productos`
+- 8 productos distribuidos en las 4 categorías
+- 3 movimientos de inventario de ejemplo
+- 2 ventas de prueba asociadas al usuario `cliente`, con sus respectivos detalles de venta

@@ -88,14 +88,14 @@ public class CarritoController {
         @ApiResponse(responseCode = "403", description = "Autenticado pero sin rol ADMIN o CLIENTE", content = @Content),
         @ApiResponse(responseCode = "404", description = "No existe un item de carrito con el ID indicado", content = @Content)
     })
-    public EntityModel<Carrito> obtenerCarritoPorId(
+    public ResponseEntity<EntityModel<Carrito>> obtenerCarritoPorId(
             @Parameter(description = "ID del item de carrito a buscar", example = "1", required = true)
             @PathVariable Long id) {
         Carrito carrito = carritoService.findById(id);
         if (carrito == null) {
-            return null;
+            return ResponseEntity.notFound().build();
         }
-        return toModel(carrito);
+        return ResponseEntity.ok(toModel(carrito));
     }
 
     @GetMapping("/usuario/{usuarioId}")

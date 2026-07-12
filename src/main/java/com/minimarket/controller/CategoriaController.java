@@ -70,14 +70,14 @@ public class CategoriaController {
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = Categoria.class))),
         @ApiResponse(responseCode = "404", description = "No existe una categoría con el ID indicado", content = @Content)
     })
-    public EntityModel<Categoria> obtenerCategoriaPorId(
+    public ResponseEntity<EntityModel<Categoria>> obtenerCategoriaPorId(
             @Parameter(description = "ID de la categoría a buscar", example = "1", required = true)
             @PathVariable Long id) {
         Categoria categoria = categoriaService.findById(id);
         if (categoria == null) {
-            return null;
+            return ResponseEntity.notFound().build();
         }
-        return toModel(categoria);
+        return ResponseEntity.ok(toModel(categoria));
     }
 
     @PostMapping

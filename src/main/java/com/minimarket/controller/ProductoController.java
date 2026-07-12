@@ -73,14 +73,14 @@ public class ProductoController {
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = Producto.class))),
         @ApiResponse(responseCode = "404", description = "No existe un producto con el ID indicado", content = @Content)
     })
-    public EntityModel<Producto> obtenerProductoPorId(
+    public ResponseEntity<EntityModel<Producto>> obtenerProductoPorId(
             @Parameter(description = "ID del producto a buscar", example = "1", required = true)
             @PathVariable Long id) {
         Producto producto = productoService.findById(id);
         if (producto == null) {
-            return null;
+            return ResponseEntity.notFound().build();
         }
-        return toModel(producto);
+        return ResponseEntity.ok(toModel(producto));
     }
 
     @GetMapping("/categoria/{categoriaId}")

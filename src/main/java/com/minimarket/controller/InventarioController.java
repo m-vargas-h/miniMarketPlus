@@ -83,14 +83,14 @@ public class InventarioController {
         @ApiResponse(responseCode = "403", description = "Autenticado pero sin rol ADMIN o EMPLEADO", content = @Content),
         @ApiResponse(responseCode = "404", description = "No existe un movimiento con el ID indicado", content = @Content)
     })
-    public EntityModel<Inventario> obtenerMovimientoPorId(
+    public ResponseEntity<EntityModel<Inventario>> obtenerMovimientoPorId(
             @Parameter(description = "ID del movimiento a buscar", example = "1", required = true)
             @PathVariable Long id) {
         Inventario inventario = inventarioService.findById(id);
         if (inventario == null) {
-            return null;
+            return ResponseEntity.notFound().build();
         }
-        return toModel(inventario);
+        return ResponseEntity.ok(toModel(inventario));
     }
 
     @GetMapping("/producto/{productoId}")

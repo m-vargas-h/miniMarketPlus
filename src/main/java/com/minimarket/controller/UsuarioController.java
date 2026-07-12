@@ -70,7 +70,7 @@ public class UsuarioController {
                 linkTo(methodOn(UsuarioController.class).listarUsuarios()).withSelfRel());
     }
 
-    @GetMapping("/{id}")
+@GetMapping("/{id}")
     @Operation(
         summary = "Obtener usuario por ID",
         description = "Retorna un usuario específico por su ID, con enlaces HATEOAS. Requiere rol ADMIN."
@@ -82,11 +82,12 @@ public class UsuarioController {
         @ApiResponse(responseCode = "403", description = "Autenticado pero sin rol ADMIN", content = @Content),
         @ApiResponse(responseCode = "404", description = "No existe un usuario con el ID indicado", content = @Content)
     })
-    public EntityModel<Usuario> obtenerUsuarioPorId(
+    public ResponseEntity<EntityModel<Usuario>> obtenerUsuarioPorId(
             @Parameter(description = "ID del usuario a buscar", example = "1", required = true)
             @PathVariable Long id) {
         Optional<Usuario> usuario = usuarioService.findById(id);
-        return usuario.map(this::toModel).orElse(null);
+        return usuario.map(u -> ResponseEntity.ok(toModel(u)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping

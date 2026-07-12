@@ -85,14 +85,14 @@ public class VentaController {
         @ApiResponse(responseCode = "403", description = "Autenticado pero sin rol ADMIN o EMPLEADO", content = @Content),
         @ApiResponse(responseCode = "404", description = "No existe una venta con el ID indicado", content = @Content)
     })
-    public EntityModel<Venta> obtenerVentaPorId(
+    public ResponseEntity<EntityModel<Venta>> obtenerVentaPorId(
             @Parameter(description = "ID de la venta a buscar", example = "1", required = true)
             @PathVariable Long id) {
         Venta venta = ventaService.findById(id);
         if (venta == null) {
-            return null;
+            return ResponseEntity.notFound().build();
         }
-        return toModel(venta);
+        return ResponseEntity.ok(toModel(venta));
     }
 
     @GetMapping("/usuario/{usuarioId}")
