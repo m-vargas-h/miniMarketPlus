@@ -45,3 +45,24 @@ INSERT INTO producto (nombre, precio, stock, categoria_id) VALUES ('Leche entera
 INSERT INTO producto (nombre, precio, stock, categoria_id) VALUES ('Yogurt natural', 790.0, 40, (SELECT id FROM categoria WHERE nombre = 'Lácteos'));
 INSERT INTO producto (nombre, precio, stock, categoria_id) VALUES ('Detergente 1kg', 3490.0, 30, (SELECT id FROM categoria WHERE nombre = 'Aseo y limpieza'));
 INSERT INTO producto (nombre, precio, stock, categoria_id) VALUES ('Cloro 1L', 1290.0, 45, (SELECT id FROM categoria WHERE nombre = 'Aseo y limpieza'));
+
+-- 6. INVENTARIO
+INSERT INTO inventario (producto_id, cantidad, tipo_movimiento, fecha_movimiento) VALUES ((SELECT id FROM producto WHERE nombre = 'Arroz 1kg'), 100, 'Entrada', CURRENT_DATE);
+INSERT INTO inventario (producto_id, cantidad, tipo_movimiento, fecha_movimiento) VALUES ((SELECT id FROM producto WHERE nombre = 'Coca-Cola 1.5L'), 60, 'Entrada', CURRENT_DATE);
+INSERT INTO inventario (producto_id, cantidad, tipo_movimiento, fecha_movimiento) VALUES ((SELECT id FROM producto WHERE nombre = 'Leche entera 1L'), 10, 'Salida', CURRENT_DATE);
+
+-- 7. VENTAS
+INSERT INTO venta (usuario_id, fecha) VALUES ((SELECT id FROM usuario WHERE username = 'cliente'), CURRENT_DATE);
+INSERT INTO venta (usuario_id, fecha) VALUES ((SELECT id FROM usuario WHERE username = 'cliente'), CURRENT_DATE);
+
+-- 8. DETALLE DE VENTAS
+INSERT INTO detalle_venta (venta_id, producto_id, cantidad, precio) VALUES (
+    (SELECT id FROM venta WHERE usuario_id = (SELECT id FROM usuario WHERE username = 'cliente') LIMIT 1),
+    (SELECT id FROM producto WHERE nombre = 'Arroz 1kg'),
+    2, 1290.0
+);
+INSERT INTO detalle_venta (venta_id, producto_id, cantidad, precio) VALUES (
+    (SELECT id FROM venta WHERE usuario_id = (SELECT id FROM usuario WHERE username = 'cliente') LIMIT 1),
+    (SELECT id FROM producto WHERE nombre = 'Coca-Cola 1.5L'),
+    3, 1590.0
+);
