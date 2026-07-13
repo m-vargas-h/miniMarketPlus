@@ -66,7 +66,7 @@ public class SecurityConfig {
                     "/v3/api-docs/**"
                 ).permitAll()
                 // Rutas públicas
-                .requestMatchers("/auth/**", "/public/**").permitAll()
+                .requestMatchers("/auth/**").permitAll()
                 .requestMatchers("/api/productos/**").permitAll()
                 .requestMatchers("/api/categorias/**").permitAll()
                 .requestMatchers("/h2-console/**").hasRole("ADMIN")

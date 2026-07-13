@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 @OpenAPIDefinition(
     info = @Info(
         title = "MiniMarket Plus API",
-        version = "1.5.0",
+        version = "1.8.0",
         description = "API REST para gestión de minimarket. Autenticación mediante JWT — obtén el token en POST /auth/login y úsalo en el botón Authorize."
     )
 )
