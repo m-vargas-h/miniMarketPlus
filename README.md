@@ -1,6 +1,8 @@
 # MiniMarket Plus
 
-Backend API REST para la gestión de un minimarket, desarrollada con Spring Boot 3 e integración completa de seguridad mediante Spring Security + JWT. Incluye suite de pruebas unitarias e integración con cobertura medida por JaCoCo. Documentación navegable de la API disponible mediante Swagger UI (OpenAPI 3.0), con anotaciones completas de request/response, ejemplos y códigos de estado en todos los controladores, además de navegación dinámica entre recursos mediante HATEOAS (EntityModel/CollectionModel).
+Backend API REST para la gestión de un minimarket, desarrollada con Spring Boot 3 e integración completa de seguridad mediante Spring Security + JWT. Incluye suite de pruebas unitarias e integración con cobertura medida por JaCoCo. Documentación navegable de la API disponible mediante Swagger UI (OpenAPI 3.0), con anotaciones completas de request/response, ejemplos y códigos de estado en todos los controladores, además de navegación dinámica entre recursos mediante HATEOAS (EntityModel/CollectionModel). Persistencia real en MySQL, desplegable mediante Docker Compose junto a la base de datos.
+
+**Versión:** v1.9.0
 
 ---
 
@@ -8,13 +10,15 @@ Backend API REST para la gestión de un minimarket, desarrollada con Spring Boot
 
 | Tecnología | Versión | Descripción |
 |---|---|---|
-| Java | 21 | Lenguaje principal |
+| Java | 17 | Lenguaje principal |
 | Spring Boot | 3.4.1 | Framework base |
 | Spring Security | 6.x | Autenticación y autorización |
 | jjwt | 0.11.5 | Generación y validación de JWT |
 | springdoc-openapi | 2.3.0 | Documentación Swagger UI / OpenAPI 3.0 |
 | Spring HATEOAS | Incluido en spring-boot-starter-hateoas | Enlaces dinámicos EntityModel/CollectionModel |
-| H2 Database | Runtime | Base de datos en memoria |
+| MySQL | 8.0 | Base de datos relacional (runtime) |
+| H2 Database | Scope test | Base de datos en memoria, solo para pruebas automatizadas |
+| Docker / Docker Compose | — | Contenerización de la app y la base de datos |
 | Lombok | Latest | Reducción de boilerplate |
 | JUnit 5 | Incluido en starter-test | Framework de pruebas unitarias |
 | Mockito | Incluido en starter-test | Simulación de dependencias |
@@ -49,28 +53,36 @@ Backend API REST para la gestión de un minimarket, desarrollada con Spring Boot
 │   │   └── 📁 resources
 │   │       ├── 📁 static
 │   │       ├── 📁 templates
-│   │       ├── 📄 application.properties
-│   │       └── 📄 data.sql
+│   │       ├── 📄 application.properties               # Config MySQL (runtime)
+│   │       └── 📄 data.sql                              # Seed idempotente (H2 y MySQL)
 │   └── 📁 test
-│       └── 📁 java
-│           └── 📁 com
-│               └── 📁 minimarket
-│                   ├── 📁 security
-│                   │   ├── ☕ SecurityControllerTest.java
-│                   │   └── 📁 util
-│                   │       └── ☕ JwtUtilTest.java
-│                   ├── 📁 service
-│                   │   └── 📁 impl
-│                   │       ├── ☕ CarritoServiceImplTest.java
-│                   │       ├── ☕ DetalleVentaServiceImplTest.java
-│                   │       ├── ☕ InventarioServiceImplTest.java
-│                   │       ├── ☕ ProductoServiceImplTest.java
-│                   │       ├── ☕ UsuarioServiceImplTest.java
-│                   │       └── ☕ VentaServiceImplTest.java
-│                   ├── ☕ MinimarketApplicationTests.java
-│                   └── ☕ MinimarketIntegrationTest.java
+│       ├── 📁 java
+│       │   └── 📁 com
+│       │       └── 📁 minimarket
+│       │           ├── 📁 controller
+│       │           │   ├── ☕ CarritoControllerTest.java
+│       │           │   └── ☕ DetalleVentaControllerTest.java
+│       │           ├── 📁 security
+│       │           │   ├── ☕ SecurityControllerTest.java
+│       │           │   └── 📁 util
+│       │           │       └── ☕ JwtUtilTest.java
+│       │           ├── 📁 service
+│       │           │   └── 📁 impl
+│       │           │       ├── ☕ CarritoServiceImplTest.java
+│       │           │       ├── ☕ DetalleVentaServiceImplTest.java
+│       │           │       ├── ☕ InventarioServiceImplTest.java
+│       │           │       ├── ☕ ProductoServiceImplTest.java
+│       │           │       ├── ☕ UsuarioServiceImplTest.java
+│       │           │       └── ☕ VentaServiceImplTest.java
+│       │           ├── ☕ MinimarketApplicationTests.java
+│       │           └── ☕ MinimarketIntegrationTest.java
+│       └── 📁 resources
+│           └── 📄 application.properties               # Config H2, solo para tests
 ├── ⚙️ .gitattributes
 ├── ⚙️ .gitignore
+├── ⚙️ .dockerignore
+├── 🐳 Dockerfile
+├── 🐳 docker-compose.yml
 ├── 📝 README.md
 ├── 📄 mvnw
 ├── 📄 mvnw.cmd
@@ -81,8 +93,13 @@ Backend API REST para la gestión de un minimarket, desarrollada con Spring Boot
 
 ## Requisitos Previos
 
-- Java 21 o superior
+**Opción recomendada — Docker:**
+- Docker y Docker Compose
+
+**Opción alternativa — ejecución local sin Docker:**
+- Java 17 o superior
 - Maven 3.6 o superior
+- Una instancia de MySQL 8 accesible (ver [Ejecución local sin Docker](#ejecución-local-sin-docker))
 - IDE recomendado: IntelliJ IDEA o VS Code con Extension Pack for Java
 - Postman o similar para pruebas de endpoints
 
@@ -90,18 +107,29 @@ Backend API REST para la gestión de un minimarket, desarrollada con Spring Boot
 
 ## Ejecución
 
-```bash
-# Compilar
-./mvnw clean install
+### Con Docker Compose (recomendado)
 
-# Ejecutar
-./mvnw spring-boot:run
+```bash
+docker compose up --build
 ```
+
+Levanta dos contenedores: `db` (MySQL 8, con volumen persistente) y `app` (la API). La app espera automáticamente a que MySQL esté disponible (`healthcheck`) antes de arrancar.
 
 - API disponible en: `http://localhost:8080`
 - Swagger UI: `http://localhost:8080/swagger-ui/index.html`
 - OpenAPI JSON: `http://localhost:8080/v3/api-docs`
-- Consola H2 (solo ADMIN): `http://localhost:8080/h2-console`
+
+Los datos persisten entre reinicios del contenedor `app` (`docker compose restart app`) gracias al volumen nombrado de MySQL; solo se pierden con `docker compose down -v`.
+
+### Ejecución local sin Docker
+
+`application.properties` apunta por defecto a `jdbc:mysql://db:3306/minimarket` (el nombre de host que resuelve dentro de la red de Docker Compose). Para correr con `./mvnw spring-boot:run` fuera de Docker, sobrescribe la URL y las credenciales apuntando a tu propia instancia de MySQL:
+
+```bash
+./mvnw spring-boot:run -Dspring-boot.run.arguments="--spring.datasource.url=jdbc:mysql://localhost:3306/minimarket --DB_USER=tu_usuario --DB_PASSWORD=tu_password"
+```
+
+> Las pruebas automatizadas (`./mvnw test`) **no** requieren MySQL ni Docker: usan H2 en memoria de forma aislada (ver [Pruebas](#pruebas)).
 
 ---
 
@@ -148,11 +176,15 @@ El JSON completo de la especificación está disponible en `http://localhost:808
 ./mvnw test
 ```
 
-Ejecuta las **108 pruebas** distribuidas en 10 clases y genera automáticamente el reporte de cobertura JaCoCo en `target/site/jacoco/index.html`.
+Ejecuta las **125 pruebas** distribuidas en 12 clases contra H2 en memoria (independiente de MySQL/Docker) y genera automáticamente el reporte de cobertura JaCoCo en `target/site/jacoco/index.html`.
 
 ### Ejecutar una clase específica
 
 ```bash
+# Pruebas de controladores (MockMvc + @WithMockUser)
+./mvnw test -Dtest=CarritoControllerTest
+./mvnw test -Dtest=DetalleVentaControllerTest
+
 # Pruebas unitarias de servicios (Mockito)
 ./mvnw test -Dtest=CarritoServiceImplTest
 ./mvnw test -Dtest=DetalleVentaServiceImplTest
@@ -179,16 +211,16 @@ Disponible en `target/site/jacoco/index.html` tras ejecutar `./mvnw test`.
 | `com.minimarket.security.util` | 100% | 75% |
 | `com.minimarket.security.model` | 100% | n/a |
 | `com.minimarket.entity` | 94% | n/a |
-| `com.minimarket.service.impl` | 84% | 100% |
+| `com.minimarket.service.impl` | 86% | 100% |
 | `com.minimarket.security.service` | 73% | n/a |
+| `com.minimarket.controller` | 72% | 38% |
 | `com.minimarket` | 37% | n/a |
 | `com.minimarket.security.filter` | 36% | 20% |
-| `com.minimarket.controller` | 42% | 12% |
-| **Total** | **61%** | **20%** |
+| **Total** | **79%** | **40%** |
 
-> **Nota:** la cobertura de `controller` (42%) y la leve baja en `entity`/`service.impl` respecto a semanas anteriores reflejan la incorporación de HATEOAS: se agregaron los métodos `toModel()` en los 7 controladores y 5 endpoints nuevos de filtrado (`/categoria/{id}`, `/producto/{id}`, `/usuario/{id}`, `/venta/{id}`), cuyo código aún no tiene tests unitarios dedicados. Los 108 tests existentes siguen validando correctamente la seguridad, los servicios y los casos base de cada controlador.
+> **Nota:** `CarritoController` y `DetalleVentaController` pasaron de 2.6% a **97.4%** de cobertura tras incorporar tests dedicados a su ciclo CRUD completo, control de acceso por rol y verificación de enlaces HATEOAS. El resto de los controladores (Categoría, Producto, Inventario, Auth, Usuario, Venta) mantiene cobertura parcial, principalmente en los métodos `toModel()` y los endpoints de filtrado agregados junto con HATEOAS.
 
-> **Pendiente a futuro:** agregar tests unitarios/MockMvc dedicados a los 5 endpoints nuevos de filtrado HATEOAS y a los métodos `toModel()` de cada controlador, para elevar la cobertura del paquete `controller` y confirmar la estructura de los enlaces `_links` generados.
+> **Pendiente a futuro:** extender el mismo patrón de test (MockMvc + `@WithMockUser` + ciclo CRUD) al resto de los controladores para elevar la cobertura general del paquete `controller` por sobre el 90%.
 
 ### Resumen de pruebas
 
@@ -197,6 +229,8 @@ Disponible en `target/site/jacoco/index.html` tras ejecutar `./mvnw test`.
 | `MinimarketApplicationTests` | Contexto Spring | 1 | ✅ Todas pasan |
 | `MinimarketIntegrationTest` | Integración (SpringBootTest) | 10 | ✅ Todas pasan |
 | `SecurityControllerTest` | Seguridad (MockMvc + @WithMockUser) | 31 | ✅ Todas pasan |
+| `CarritoControllerTest` | Controlador (MockMvc + @WithMockUser) | 8 | ✅ Todas pasan |
+| `DetalleVentaControllerTest` | Controlador (MockMvc + @WithMockUser) | 9 | ✅ Todas pasan |
 | `JwtUtilTest` | Unitaria (JWT) | 17 | ✅ Todas pasan |
 | `CarritoServiceImplTest` | Unitaria (Mockito) | 8 | ✅ Todas pasan |
 | `DetalleVentaServiceImplTest` | Unitaria (Mockito) | 7 | ✅ Todas pasan |
@@ -204,7 +238,7 @@ Disponible en `target/site/jacoco/index.html` tras ejecutar `./mvnw test`.
 | `ProductoServiceImplTest` | Unitaria (Mockito) | 7 | ✅ Todas pasan |
 | `UsuarioServiceImplTest` | Unitaria (Mockito) | 8 | ✅ Todas pasan |
 | `VentaServiceImplTest` | Unitaria (Mockito) | 10 | ✅ Todas pasan |
-| **Total** | | **108** | **✅ 0 fallos** |
+| **Total** | | **125** | **✅ 0 fallos** |
 
 ---
 
@@ -216,11 +250,13 @@ Corresponde a la especificación OpenAPI 3.0 completa, exportada directamente de
 
 Para ejecutar: importa el archivo en Postman, autentícate primero con `POST /auth/login` para obtener el token JWT, y configúralo como Bearer Token a nivel de colección (o de cada carpeta) para que se propague automáticamente a los endpoints protegidos.
 
+> **Nota:** este archivo es una exportación estática tomada en una versión anterior del proyecto. Antes de la entrega final, conviene volver a exportarlo desde `/v3/api-docs` con la app corriendo, para que refleje la versión v1.9.0 y los cambios recientes.
+
 ---
 
 ## Usuarios de Prueba
 
-Cargados automáticamente por `data.sql` al iniciar la aplicación:
+Cargados automáticamente por `data.sql` al iniciar la aplicación (siembra idempotente: solo se insertan la primera vez que la base de datos está vacía):
 
 | Usuario | Contraseña | Rol | Acceso |
 |---|---|---|---|
@@ -321,6 +357,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
 |---|---|---|
 | JWT Stateless | jjwt 0.11.5 + HS256 | Acceso no autorizado, session hijacking |
 | BCrypt | BCryptPasswordEncoder | Robo de contraseñas en BD |
+| Password oculto en JSON | `@JsonProperty(access = WRITE_ONLY)` en `Usuario.password` | Exposición del hash en respuestas de la API, incluso anidado en `Carrito`/`Venta` |
 | X-Content-Type-Options | Header HTTP | MIME sniffing / XSS |
 | Content-Security-Policy | Header HTTP | XSS, inyección de contenido |
 | HSTS | Header HTTP | Downgrade attacks |
@@ -346,7 +383,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
 
 ## Datos Iniciales
 
-El archivo `data.sql` inserta automáticamente al arrancar:
+El archivo `data.sql` inserta automáticamente al arrancar, **solo si la base de datos está vacía** (siembra idempotente mediante una bandera calculada al inicio del script, compatible tanto con H2 como con MySQL):
 
 - 3 roles: `ROLE_ADMIN`, `ROLE_EMPLEADO`, `ROLE_CLIENTE`
 - 3 usuarios con contraseñas hasheadas en BCrypt
@@ -355,3 +392,5 @@ El archivo `data.sql` inserta automáticamente al arrancar:
 - 8 productos distribuidos en las 4 categorías
 - 3 movimientos de inventario de ejemplo
 - 2 ventas de prueba asociadas al usuario `cliente`, con sus respectivos detalles de venta
+
+En MySQL (vía Docker Compose), estos datos persisten entre reinicios del contenedor gracias al volumen nombrado de la base de datos.
