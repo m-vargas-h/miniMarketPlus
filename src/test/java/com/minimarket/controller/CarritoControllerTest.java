@@ -92,6 +92,7 @@ class CarritoControllerTest {
                 .andExpect(status().isForbidden());
     }
 
+    // Control de acceso: EMPLEADO no puede acceder a la lista de carrito
     @Test
     @WithMockUser(roles = "EMPLEADO")
     @DisplayName("GET /api/carrito con EMPLEADO retorna 403 (rol no permitido)")
@@ -100,6 +101,7 @@ class CarritoControllerTest {
                 .andExpect(status().isForbidden());
     }
 
+    // Control de acceso: CLIENTE puede acceder a la lista de carrito
     @Test
     @WithMockUser(roles = "CLIENTE")
     @DisplayName("GET /api/carrito con CLIENTE retorna 200")
@@ -124,6 +126,7 @@ class CarritoControllerTest {
                 .andExpect(jsonPath("$._links.producto.href").exists());
     }
 
+    // Ciclo completo CRUD: crear, obtener, actualizar y eliminar un item de carrito
     @Test
     @WithMockUser(roles = "ADMIN")
     @DisplayName("Ciclo completo: crear, obtener, actualizar y eliminar un item de carrito")
@@ -153,6 +156,7 @@ class CarritoControllerTest {
                 .andExpect(status().isNotFound());
     }
 
+    // Validación de errores y casos límite
     @Test
     @WithMockUser(roles = "ADMIN")
     @DisplayName("GET /api/carrito/{id} con id inexistente retorna 404")
@@ -161,6 +165,7 @@ class CarritoControllerTest {
                 .andExpect(status().isNotFound());
     }
 
+    // Control de errores
     @Test
     @WithMockUser(roles = "ADMIN")
     @DisplayName("PUT /api/carrito/{id} con id inexistente retorna 404")
@@ -171,6 +176,7 @@ class CarritoControllerTest {
                 .andExpect(status().isNotFound());
     }
 
+    // HATEOAS: Verificar que los enlaces generados sean correctos
     @Test
     @WithMockUser(roles = "ADMIN")
     @DisplayName("GET /api/carrito/usuario/{usuarioId} incluye el link al usuario correcto")

@@ -97,6 +97,7 @@ class DetalleVentaControllerTest {
 
     // Control de acceso
 
+    // Control de acceso: sin token retorna 403
     @Test
     @DisplayName("GET /api/detalle-ventas sin token retorna 403")
     void listar_sinToken_retorna403() throws Exception {
@@ -104,6 +105,7 @@ class DetalleVentaControllerTest {
                 .andExpect(status().isForbidden());
     }
 
+    // Control de acceso: CLIENTE no puede listar ni crear detalles de venta
     @Test
     @WithMockUser(roles = "CLIENTE")
     @DisplayName("GET /api/detalle-ventas con CLIENTE retorna 403 (rol no permitido)")
@@ -112,6 +114,7 @@ class DetalleVentaControllerTest {
                 .andExpect(status().isForbidden());
     }
 
+    // Control de acceso: EMPLEADO puede listar, ADMIN puede listar y eliminar
     @Test
     @WithMockUser(roles = "EMPLEADO")
     @DisplayName("GET /api/detalle-ventas con EMPLEADO retorna 200")
@@ -121,7 +124,6 @@ class DetalleVentaControllerTest {
     }
 
     // Ciclo CRUD + HATEOAS
-
     @Test
     @WithMockUser(roles = "EMPLEADO")
     @DisplayName("POST /api/detalle-ventas crea un detalle y retorna los enlaces HATEOAS correctos")
@@ -136,6 +138,7 @@ class DetalleVentaControllerTest {
                 .andExpect(jsonPath("$._links.producto.href").exists());
     }
 
+    // Ciclo completo CRUD + HATEOAS
     @Test
     @WithMockUser(roles = "ADMIN")
     @DisplayName("Ciclo completo: crear, obtener, actualizar y eliminar un detalle de venta")
@@ -165,6 +168,7 @@ class DetalleVentaControllerTest {
                 .andExpect(status().isNotFound());
     }
 
+    // Casos especiales
     @Test
     @WithMockUser(roles = "ADMIN")
     @DisplayName("GET /api/detalle-ventas/{id} con id inexistente retorna 404")
@@ -174,7 +178,6 @@ class DetalleVentaControllerTest {
     }
 
     // Caso especial: DELETE solo permitido para ADMIN, no para EMPLEADO
-
     @Test
     @WithMockUser(roles = "EMPLEADO")
     @DisplayName("DELETE /api/detalle-ventas/{id} con EMPLEADO retorna 403 (solo ADMIN puede eliminar)")
@@ -183,6 +186,7 @@ class DetalleVentaControllerTest {
                 .andExpect(status().isForbidden());
     }
 
+    // Caso especial: DELETE con id inexistente retorna 404, incluso para ADMIN
     @Test
     @WithMockUser(roles = "ADMIN")
     @DisplayName("DELETE /api/detalle-ventas/{id} con id inexistente retorna 404")
@@ -191,6 +195,7 @@ class DetalleVentaControllerTest {
                 .andExpect(status().isNotFound());
     }
 
+    // HATEOAS: verificar que los enlaces a la venta sean correctos
     @Test
     @WithMockUser(roles = "EMPLEADO")
     @DisplayName("GET /api/detalle-ventas/venta/{ventaId} incluye el link a la venta correcta")
