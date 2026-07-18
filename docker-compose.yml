@@ -1,0 +1,35 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: minimarket-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: minimarket
+      MYSQL_USER: minimarket
+      MYSQL_PASSWORD: minimarket
+      MYSQL_ROOT_PASSWORD: rootpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - minimarket_db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    container_name: minimarket-app
+    restart: unless-stopped
+    environment:
+      DB_USER: minimarket
+      DB_PASSWORD: minimarket
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  minimarket_db_data:
